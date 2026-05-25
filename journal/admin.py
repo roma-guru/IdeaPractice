@@ -1,0 +1,34 @@
+from django.contrib import admin
+
+from .models import Instrument, Recording, Tag
+
+
+@admin.register(Instrument)
+class InstrumentAdmin(admin.ModelAdmin):
+    list_display = ("name", "family")
+    search_fields = ("name", "family")
+
+
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
+    list_display = ("name", "category")
+    list_filter = ("category",)
+    search_fields = ("name",)
+
+
+@admin.register(Recording)
+class RecordingAdmin(admin.ModelAdmin):
+    list_display = ("id", "file", "instrument", "idea_stage", "is_practice", "is_idea", "created_at")
+    list_filter = ("idea_stage", "is_practice", "is_idea", "instrument", "tags")
+    search_fields = ("notes", "location", "mood", "file")
+    autocomplete_fields = ("instrument", "tags")
+    readonly_fields = ("created_at",)
+    filter_horizontal = ("tags",)
+    fieldsets = (
+        ("File", {"fields": ("file",)}),
+        ("Classification", {"fields": ("instrument", "tags", "idea_stage")}),
+        ("Details", {"fields": ("duration", "location", "mood", "rating")}),
+        ("Flags", {"fields": ("is_practice", "is_idea")}),
+        ("Notes", {"fields": ("notes",)}),
+        ("System", {"fields": ("created_at",)}),
+    )

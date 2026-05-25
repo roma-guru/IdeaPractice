@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="panel">
+    <h1 style="margin-top:0;font-size:20px;">Batch Upload Recordings</h1>
+    {% if form.errors %}
+        <p class="empty" style="color:#b3261e;">Please fix the highlighted fields and try again.</p>
+    {% endif %}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="grid">
+            <div>
+                <label for="{{ form.files.id_for_label }}">Files</label>
+                {{ form.files }}
+            </div>
+            <div>
+                <label for="{{ form.instrument.id_for_label }}">Instrument</label>
+                {{ form.instrument }}
+            </div>
+            <div>
+                <label for="{{ form.idea_stage.id_for_label }}">Idea Stage</label>
+                {{ form.idea_stage }}
+            </div>
+            <div>
+                <label for="{{ form.rating.id_for_label }}">Rating</label>
+                {{ form.rating }}
+            </div>
+            <div>
+                <label for="{{ form.location.id_for_label }}">Location</label>
+                {{ form.location }}
+            </div>
+            <div>
+                <label for="{{ form.mood.id_for_label }}">Mood</label>
+                {{ form.mood }}
+            </div>
+        </div>
+        <p class="meta">{{ form.files.help_text }}</p>
+        <div class="panel" style="margin-top:10px;">
+            <label>Tags</label>
+            {{ form.tags }}
+        </div>
+        <div class="grid">
+            <div>
+                <label>
+                    {{ form.is_practice }} Practice
+                </label>
+            </div>
+            <div>
+                <label>
+                    {{ form.is_idea }} Idea
+                </label>
+            </div>
+        </div>
+        <div style="margin-top:10px;">
+            <label for="{{ form.notes.id_for_label }}">Notes</label>
+            {{ form.notes }}
+        </div>
+        <div style="margin-top:12px;">
+            <button class="button" type="submit">Save Recordings</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

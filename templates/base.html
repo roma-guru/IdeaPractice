@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Audio Practice Journal</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+</head>
+<body>
+<div class="shell">
+    <header class="topbar">
+        <div class="brand">Audio Practice & Idea Journal</div>
+        <nav class="actions">
+            {% if request.user.is_authenticated %}
+                <a href="{% url 'recording-list' %}">Recordings</a>
+                <a href="{% url 'recording-upload' %}">Upload</a>
+                <form method="post" action="{% url 'logout' %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="button-link">Logout</button>
+                </form>
+            {% else %}
+                <a href="{% url 'login' %}">Login</a>
+            {% endif %}
+        </nav>
+    </header>
+    {% block content %}{% endblock %}
+</div>
+</body>
+</html>

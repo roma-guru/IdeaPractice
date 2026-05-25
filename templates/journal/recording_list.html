@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="panel">
+    <h1 style="margin-top:0;font-size:20px;">Recordings</h1>
+    <form method="get" class="grid">
+        <div>
+            <label for="instrument">Instrument</label>
+            <select name="instrument" id="instrument">
+                <option value="">Any</option>
+                {% for instrument in instruments %}
+                    <option value="{{ instrument.id }}" {% if request.GET.instrument == instrument.id|stringformat:"s" %}selected{% endif %}>
+                        {{ instrument.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="tag">Tag</label>
+            <select name="tag" id="tag">
+                <option value="">Any</option>
+                {% for tag in tags %}
+                    <option value="{{ tag.id }}" {% if request.GET.tag == tag.id|stringformat:"s" %}selected{% endif %}>
+                        {{ tag.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="stage">Idea Stage</label>
+            <select name="stage" id="stage">
+                <option value="">Any</option>
+                {% for value, label in idea_stages %}
+                    <option value="{{ value }}" {% if request.GET.stage == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="kind">Kind</label>
+            <select name="kind" id="kind">
+                <option value="">Any</option>
+                <option value="practice" {% if request.GET.kind == "practice" %}selected{% endif %}>Practice</option>
+                <option value="idea" {% if request.GET.kind == "idea" %}selected{% endif %}>Idea</option>
+            </select>
+        </div>
+        <div style="grid-column: 1 / -1;">
+            <label for="q">Notes Search</label>
+            <input id="q" name="q" value="{{ request.GET.q|default:'' }}" placeholder="rhythm pattern, texture, ...">
+        </div>
+        <div style="grid-column: 1 / -1;">
+            <button class="button" type="submit">Apply Filters</button>
+        </div>
+    </form>
+</section>
+
+{% for recording in recordings %}
+    <article class="panel recording-item">
+        <h3>{{ recording.file.name }}</h3>
+        <p class="meta">
+            {{ recording.created_at|date:"Y-m-d H:i" }}
+            {% if recording.instrument %} · {{ recording.instrument.name }}{% endif %}
+            · {{ recording.get_idea_stage_display }}
+        </p>
+        {% if recording.notes %}
+            <p style="margin:8px 0 0;font-size:14px;">{{ recording.notes }}</p>
+        {% endif %}
+        <div class="chips">
+            {% for tag in recording.tags.all %}
+                <span class="chip">{{ tag.name }}</span>
+            {% endfor %}
+        </div>
+        {% if recording.file %}
+            <div style="margin-top:10px;">
+                <audio controls preload="none" style="width:100%;">
+                    <source src="{{ recording.file.url }}">
+                </audio>
+            </div>
+        {% endif %}
+    </article>
+{% empty %}
+    <section class="panel">
+        <p class="empty">No recordings yet. Start with Upload.</p>
+    </section>
+{% endfor %}
+{% endblock %}
