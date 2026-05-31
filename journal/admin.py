@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Instrument, Recording, Tag
+from .models import Comment, Instrument, Recording, Tag
 
 
 @admin.register(Instrument)
@@ -32,3 +32,9 @@ class RecordingAdmin(admin.ModelAdmin):
         ("Notes", {"fields": ("notes",)}),
         ("System", {"fields": ("created_at",)}),
     )
+
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ("id", "recording", "created_at")
+    raw_id_fields = ("recording",)

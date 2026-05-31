@@ -76,6 +76,9 @@
                 </audio>
             </div>
         {% endif %}
+        <div style="margin-top:10px;">
+            <a href="{% url 'recording-detail' recording.pk %}" class="btn-detail">View / Edit</a>
+        </div>
     </article>
 {% empty %}
     <section class="panel">

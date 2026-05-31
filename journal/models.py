@@ -65,3 +65,15 @@ class Recording(models.Model):
     def __str__(self) -> str:
         instrument = self.instrument.name if self.instrument else "No instrument"
         return f"{instrument}: {self.file.name}"
+
+
+class Comment(models.Model):
+    recording = models.ForeignKey(Recording, on_delete=models.CASCADE, related_name="comments")
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def __str__(self) -> str:
+        return f"Comment on recording {self.recording_id}"

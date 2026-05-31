@@ -1,14 +1,24 @@
 from django import forms
 
-from .models import Instrument, Recording, Tag
+from .models import Comment, Instrument, Recording, Tag
 
 
 class MultipleFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
 
 
+class MultipleFileField(forms.FileField):
+    def clean(self, data, initial=None):
+        single_file_clean = super().clean
+        if isinstance(data, (list, tuple)):
+            if not data:
+                raise forms.ValidationError(self.error_messages["required"], code="required")
+            return [single_file_clean(item, initial) for item in data]
+        return [single_file_clean(data, initial)]
+
+
 class RecordingBatchUploadForm(forms.Form):
-    files = forms.FileField(
+    files = MultipleFileField(
         widget=MultipleFileInput(),
         help_text="Select one or more recordings.",
     )
@@ -25,3 +35,31 @@ class RecordingBatchUploadForm(forms.Form):
     is_practice = forms.BooleanField(required=False, initial=True)
     is_idea = forms.BooleanField(required=False)
     notes = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 4}))
+
+
+class RecordingEditForm(forms.ModelForm):
+    tags = forms.ModelMultipleChoiceField(
+        queryset=Tag.objects.all(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple(),
+    )
+
+    class Meta:
+        model = Recording
+        fields = [
+            "instrument", "tags", "idea_stage", "location", "mood",
+            "rating", "is_practice", "is_idea", "notes",
+        ]
+        widgets = {"notes": forms.Textarea(attrs={"rows": 4})}
+
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ["text"]
+        widgets = {
+            "text": forms.Textarea(
+                attrs={"rows": 3, "placeholder": "What to try next, what didn't work, ideas..."}
+            )
+        }
+        labels = {"text": "Add a comment"}
