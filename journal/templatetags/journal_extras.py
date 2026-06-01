@@ -1,6 +1,20 @@
+import os
+
 from django import template
 
 register = template.Library()
+
+
+@register.filter
+def get_item(dictionary, key):
+    """Dict lookup: {{ my_dict|get_item:key }}"""
+    return dictionary.get(key)
+
+
+@register.filter
+def basename(value):
+    """Return just the filename portion of a path."""
+    return os.path.basename(str(value))
 
 
 @register.filter

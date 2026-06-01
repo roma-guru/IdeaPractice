@@ -4,24 +4,28 @@
 {% block content %}
 <section class="panel">
     <h1 style="margin-top:0;font-size:20px;">Statistics</h1>
-    <div class="grid stat-grid">
+    <div class="grid stat-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
         <div class="stat-card">
             <div class="stat-value">{{ total }}</div>
             <div class="stat-label">Recordings</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value">{{ ideas }}</div>
-            <div class="stat-label">Ideas</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value">{{ practice }}</div>
-            <div class="stat-label">Practice sessions</div>
         </div>
         <div class="stat-card">
             <div class="stat-value">{{ total_duration|format_duration }}</div>
             <div class="stat-label">Total time recorded</div>
         </div>
     </div>
+</section>
+
+<section class="panel">
+    <h2 style="margin:0 0 14px;font-size:16px;">By Type</h2>
+    {% for row in by_type %}
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);">
+        <span>{{ recording_types|get_item:row.recording_type|default:row.recording_type }}</span>
+        <span class="meta">{{ row.count }} recording{{ row.count|pluralize }}</span>
+    </div>
+    {% empty %}
+    <p class="empty">No recordings yet.</p>
+    {% endfor %}
 </section>
 
 <section class="panel">

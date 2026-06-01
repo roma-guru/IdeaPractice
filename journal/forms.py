@@ -28,12 +28,14 @@ class RecordingBatchUploadForm(forms.Form):
         required=False,
         widget=forms.CheckboxSelectMultiple(),
     )
+    recording_type = forms.ChoiceField(
+        choices=Recording.RecordingType.choices,
+        initial=Recording.RecordingType.PRACTICE,
+    )
     idea_stage = forms.ChoiceField(choices=Recording.IdeaStage.choices, initial=Recording.IdeaStage.RAW)
     location = forms.CharField(max_length=200, required=False)
     mood = forms.CharField(max_length=120, required=False)
     rating = forms.IntegerField(min_value=0, max_value=10, required=False)
-    is_practice = forms.BooleanField(required=False, initial=True)
-    is_idea = forms.BooleanField(required=False)
     notes = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 4}))
 
 
@@ -47,8 +49,8 @@ class RecordingEditForm(forms.ModelForm):
     class Meta:
         model = Recording
         fields = [
-            "instrument", "tags", "idea_stage", "location", "mood",
-            "rating", "is_practice", "is_idea", "notes",
+            "instrument", "recording_type", "tags", "idea_stage",
+            "location", "mood", "rating", "notes",
         ]
         widgets = {"notes": forms.Textarea(attrs={"rows": 4})}
 

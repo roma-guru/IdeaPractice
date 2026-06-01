@@ -37,12 +37,11 @@ def test_batch_upload_creates_multiple_recordings(client):
             "files": [file_one, file_two],
             "instrument": str(instrument.id),
             "tags": [str(tag.id)],
+            "recording_type": Recording.RecordingType.IMPROVISATION,
             "idea_stage": Recording.IdeaStage.PROMISING,
             "location": "home",
             "mood": "focused",
             "rating": "8",
-            "is_practice": "on",
-            "is_idea": "on",
             "notes": "batch test",
         },
     )
@@ -64,11 +63,11 @@ def test_batch_upload_with_single_file_creates_one_recording(client):
         data={
             "files": file_one,
             "instrument": str(instrument.id),
+            "recording_type": Recording.RecordingType.PRACTICE,
             "idea_stage": Recording.IdeaStage.RAW,
             "location": "studio",
             "mood": "calm",
             "rating": "6",
-            "is_practice": "on",
             "notes": "single file test",
         },
     )
@@ -80,8 +79,7 @@ def test_batch_upload_with_single_file_creates_one_recording(client):
     assert Path(saved.file.name).suffix == ".wav"
     assert "idea-single" in Path(saved.file.name).stem
     assert saved.instrument == instrument
-    assert saved.is_practice is True
-    assert saved.is_idea is False
+    assert saved.recording_type == Recording.RecordingType.PRACTICE
 
 
 def test_batch_upload_requires_at_least_one_file(client):
@@ -159,11 +157,11 @@ def test_recording_detail_edit(client):
         data={
             "action": "edit",
             "instrument": str(instrument.id),
+            "recording_type": Recording.RecordingType.PRACTICE,
             "idea_stage": Recording.IdeaStage.PROMISING,
             "location": "studio",
             "mood": "calm",
             "notes": "updated notes",
-            "is_practice": "on",
         },
     )
 
@@ -203,12 +201,15 @@ def test_recording_stats_get(client):
 
     instrument = Instrument.objects.create(name="duduk")
     wav = SimpleUploadedFile("stat.wav", b"RIFF....WAVE", content_type="audio/wav")
-    Recording.objects.create(file=wav, instrument=instrument, is_idea=True)
+    Recording.objects.create(
+        file=wav, instrument=instrument, recording_type=Recording.RecordingType.IMPROVISATION
+    )
 
     response = client.get(reverse("recording-stats"))
     assert response.status_code == 200
     assert response.context["total"] == 1
-    assert response.context["ideas"] == 1
+    by_type = {row["recording_type"]: row["count"] for row in response.context["by_type"]}
+    assert by_type.get(Recording.RecordingType.IMPROVISATION) == 1
 
 
 def test_recording_list_filters_by_multiple_params(client):
@@ -224,28 +225,25 @@ def test_recording_list_filters_by_multiple_params(client):
         file=SimpleUploadedFile("match.wav", b"RIFF....WAVE", content_type="audio/wav"),
         instrument=guitar,
         idea_stage=Recording.IdeaStage.PROMISING,
-        is_practice=False,
-        is_idea=True,
+        recording_type=Recording.RecordingType.IMPROVISATION,
         notes="ambient texture from rainy evening",
     )
     match.tags.add(ambient)
 
-    practice = Recording.objects.create(
+    practice_rec = Recording.objects.create(
         file=SimpleUploadedFile("practice.wav", b"RIFF....WAVE", content_type="audio/wav"),
         instrument=guitar,
         idea_stage=Recording.IdeaStage.PROMISING,
-        is_practice=True,
-        is_idea=False,
+        recording_type=Recording.RecordingType.PRACTICE,
         notes="ambient rhythm practice",
     )
-    practice.tags.add(ambient, rhythm)
+    practice_rec.tags.add(ambient, rhythm)
 
     other_instrument = Recording.objects.create(
         file=SimpleUploadedFile("keys.wav", b"RIFF....WAVE", content_type="audio/wav"),
         instrument=piano,
         idea_stage=Recording.IdeaStage.PROMISING,
-        is_practice=False,
-        is_idea=True,
+        recording_type=Recording.RecordingType.IMPROVISATION,
         notes="ambient texture for keys",
     )
     other_instrument.tags.add(ambient)
@@ -255,7 +253,7 @@ def test_recording_list_filters_by_multiple_params(client):
         {
             "instrument": str(guitar.id),
             "tag": str(ambient.id),
-            "kind": "idea",
+            "kind": Recording.RecordingType.IMPROVISATION,
             "q": "texture",
         },
     )

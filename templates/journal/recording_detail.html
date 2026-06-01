@@ -5,7 +5,7 @@
 <section class="panel">
     <div class="detail-header">
         <div>
-            <h1 style="margin:0 0 4px;font-size:18px;">{{ recording.file.name }}</h1>
+            <h1 style="margin:0 0 4px;font-size:18px;">{{ recording.file.name|basename }}</h1>
             <p class="meta">
                 {{ recording.created_at|date:"Y-m-d H:i" }}
                 {% if recording.instrument %} · {{ recording.instrument.name }}{% endif %}
@@ -15,19 +15,26 @@
                 {% if recording.location %} · {{ recording.location }}{% endif %}
                 {% if recording.mood %} · {{ recording.mood }}{% endif %}
             </p>
+            {% if not is_owner and recording.owner %}
+                <p class="meta" style="margin-top:4px;">shared by <strong>{{ recording.owner.username }}</strong></p>
+            {% endif %}
             <div class="chips" style="margin-top:8px;">
-                {% if recording.is_practice %}<span class="chip">Practice</span>{% endif %}
-                {% if recording.is_idea %}<span class="chip">Idea</span>{% endif %}
+                <span class="chip chip-type">{{ recording.get_recording_type_display }}</span>
                 {% for tag in recording.tags.all %}
                     <span class="chip">{{ tag.name }}</span>
                 {% endfor %}
             </div>
         </div>
-        <a href="{% url 'recording-list' %}" class="btn-back">← Back</a>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+            <a href="{% url 'recording-list' %}" class="btn-back">← Back</a>
+            {% if is_owner %}
+                <a href="{% url 'recording-share' recording.pk %}" class="btn-share">Share</a>
+            {% endif %}
+        </div>
     </div>
     {% if recording.file %}
-    <div style="margin-top:14px;">
-        <audio controls style="width:100%;">
+    <div class="player-wrap">
+        <audio controls>
             <source src="{{ recording.file.url }}">
         </audio>
     </div>
@@ -37,6 +44,23 @@
     {% endif %}
 </section>
 
+{% if is_owner %}
+<section class="panel">
+    <h2 style="margin:0 0 4px;font-size:16px;">Shared with</h2>
+    {% if shared_with_users %}
+        <div class="chips" style="margin-bottom:10px;">
+            {% for share in shared_with_users %}
+                <span class="chip chip-user">{{ share.shared_with.username }}</span>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="empty" style="margin-bottom:10px;">Not shared with anyone yet.</p>
+    {% endif %}
+    <a href="{% url 'recording-share' recording.pk %}" class="btn-share">Manage sharing</a>
+</section>
+{% endif %}
+
+{% if is_owner %}
 <section class="panel">
     <h2 style="margin:0 0 12px;font-size:16px;">Edit</h2>
     {% if edit_form.errors %}
@@ -49,6 +73,10 @@
             <div>
                 <label for="{{ edit_form.instrument.id_for_label }}">Instrument</label>
                 {{ edit_form.instrument }}
+            </div>
+            <div>
+                <label for="{{ edit_form.recording_type.id_for_label }}">Type</label>
+                {{ edit_form.recording_type }}
             </div>
             <div>
                 <label for="{{ edit_form.idea_stage.id_for_label }}">Idea Stage</label>
@@ -71,10 +99,6 @@
             <label>Tags</label>
             {{ edit_form.tags }}
         </div>
-        <div class="grid" style="margin-top:10px;">
-            <label><span style="display:flex;align-items:center;gap:6px;">{{ edit_form.is_practice }} Practice</span></label>
-            <label><span style="display:flex;align-items:center;gap:6px;">{{ edit_form.is_idea }} Idea</span></label>
-        </div>
         <div style="margin-top:10px;">
             <label for="{{ edit_form.notes.id_for_label }}">Notes</label>
             {{ edit_form.notes }}
@@ -84,13 +108,17 @@
         </div>
     </form>
 </section>
+{% endif %}
 
 <section class="panel">
     <h2 style="margin:0 0 12px;font-size:16px;">Comments ({{ comments|length }})</h2>
     {% for comment in comments %}
     <div class="comment-item">
-        <p style="margin:0 0 4px;white-space:pre-wrap;">{{ comment.text }}</p>
-        <p class="meta">{{ comment.created_at|date:"Y-m-d H:i" }}</p>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
+            <strong style="font-size:13px;">{{ comment.author.username|default:"—" }}</strong>
+            <span class="meta">{{ comment.created_at|date:"Y-m-d H:i" }}</span>
+        </div>
+        <p style="margin:4px 0 0;white-space:pre-wrap;font-size:14px;">{{ comment.text }}</p>
     </div>
     {% empty %}
     <p class="empty">No comments yet.</p>

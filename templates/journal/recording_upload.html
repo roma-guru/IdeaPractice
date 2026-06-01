@@ -18,6 +18,10 @@
                 {{ form.instrument }}
             </div>
             <div>
+                <label for="{{ form.recording_type.id_for_label }}">Type</label>
+                {{ form.recording_type }}
+            </div>
+            <div>
                 <label for="{{ form.idea_stage.id_for_label }}">Idea Stage</label>
                 {{ form.idea_stage }}
             </div>
@@ -38,18 +42,6 @@
         <div class="panel" style="margin-top:10px;">
             <label>Tags</label>
             {{ form.tags }}
-        </div>
-        <div class="grid">
-            <div>
-                <label>
-                    {{ form.is_practice }} Practice
-                </label>
-            </div>
-            <div>
-                <label>
-                    {{ form.is_idea }} Idea
-                </label>
-            </div>
         </div>
         <div style="margin-top:10px;">
             <label for="{{ form.notes.id_for_label }}">Notes</label>

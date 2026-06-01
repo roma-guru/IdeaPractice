@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 
@@ -40,9 +41,31 @@ class Recording(models.Model):
         DEVELOPED = "developed", "Developed"
         ARCHIVED = "archived", "Archived"
 
+    class RecordingType(models.TextChoices):
+        PRACTICE = "practice", "Practice"
+        IMPROVISATION = "improvisation", "Improvisation"
+        COMPOSITION = "composition", "Composition"
+        JAM = "jam", "Jam Session"
+        LIVE = "live", "Live Performance"
+        COVER = "cover", "Cover"
+        DEMO = "demo", "Demo"
+        IMPORTED = "imported", "Imported"
+
     file = models.FileField(upload_to="recordings/%Y/%m/")
     created_at = models.DateTimeField(auto_now_add=True)
     duration = models.DurationField(null=True, blank=True)
+    recording_type = models.CharField(
+        max_length=20,
+        choices=RecordingType.choices,
+        default=RecordingType.PRACTICE,
+    )
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="recordings",
+    )
     instrument = models.ForeignKey(
         Instrument,
         on_delete=models.SET_NULL,
@@ -55,8 +78,6 @@ class Recording(models.Model):
     notes = models.TextField(blank=True)
     idea_stage = models.CharField(max_length=20, choices=IdeaStage.choices, default=IdeaStage.RAW)
     rating = models.PositiveSmallIntegerField(null=True, blank=True)
-    is_practice = models.BooleanField(default=True)
-    is_idea = models.BooleanField(default=False)
     tags = models.ManyToManyField(Tag, blank=True, related_name="recordings")
 
     class Meta:
@@ -69,6 +90,13 @@ class Recording(models.Model):
 
 class Comment(models.Model):
     recording = models.ForeignKey(Recording, on_delete=models.CASCADE, related_name="comments")
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="comments",
+    )
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -77,3 +105,24 @@ class Comment(models.Model):
 
     def __str__(self) -> str:
         return f"Comment on recording {self.recording_id}"
+
+
+class SharedRecording(models.Model):
+    recording = models.ForeignKey(Recording, on_delete=models.CASCADE, related_name="shares")
+    shared_with = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="shared_recordings",
+    )
+    shared_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="recordings_shared_by_me",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("recording", "shared_with")
+
+    def __str__(self) -> str:
+        return f"{self.recording} shared with {self.shared_with}"

@@ -1,9 +1,15 @@
 {% extends "base.html" %}
+{% load journal_extras %}
 
 {% block content %}
 <section class="panel">
-    <h1 style="margin-top:0;font-size:20px;">Recordings</h1>
-    <form method="get" class="grid">
+    <div class="tabs">
+        <a href="?tab=my" class="tab {% if tab == 'my' %}tab-active{% endif %}">My Files</a>
+        <a href="?tab=shared" class="tab {% if tab == 'shared' %}tab-active{% endif %}">Shared with Me</a>
+    </div>
+
+    <form method="get" class="grid" style="margin-top:12px;">
+        <input type="hidden" name="tab" value="{{ tab }}">
         <div>
             <label for="instrument">Instrument</label>
             <select name="instrument" id="instrument">
@@ -36,11 +42,12 @@
             </select>
         </div>
         <div>
-            <label for="kind">Kind</label>
+            <label for="kind">Type</label>
             <select name="kind" id="kind">
                 <option value="">Any</option>
-                <option value="practice" {% if request.GET.kind == "practice" %}selected{% endif %}>Practice</option>
-                <option value="idea" {% if request.GET.kind == "idea" %}selected{% endif %}>Idea</option>
+                {% for value, label in recording_types %}
+                    <option value="{{ value }}" {% if request.GET.kind == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
             </select>
         </div>
         <div style="grid-column: 1 / -1;">
@@ -55,23 +62,30 @@
 
 {% for recording in recordings %}
     <article class="panel recording-item">
-        <h3>{{ recording.file.name }}</h3>
+        <div class="recording-item-header">
+            <h3>{{ recording.file.name|basename }}</h3>
+            {% if tab == "shared" and recording.owner %}
+                <span class="shared-by-badge">shared by {{ recording.owner.username }}</span>
+            {% endif %}
+        </div>
         <p class="meta">
             {{ recording.created_at|date:"Y-m-d H:i" }}
             {% if recording.instrument %} · {{ recording.instrument.name }}{% endif %}
+            {% if recording.duration %} · {{ recording.duration|format_duration }}{% endif %}
             · {{ recording.get_idea_stage_display }}
         </p>
         {% if recording.notes %}
             <p style="margin:8px 0 0;font-size:14px;">{{ recording.notes }}</p>
         {% endif %}
         <div class="chips">
+            <span class="chip chip-type">{{ recording.get_recording_type_display }}</span>
             {% for tag in recording.tags.all %}
                 <span class="chip">{{ tag.name }}</span>
             {% endfor %}
         </div>
         {% if recording.file %}
-            <div style="margin-top:10px;">
-                <audio controls preload="none" style="width:100%;">
+            <div class="player-wrap">
+                <audio controls preload="none">
                     <source src="{{ recording.file.url }}">
                 </audio>
             </div>
@@ -82,7 +96,11 @@
     </article>
 {% empty %}
     <section class="panel">
-        <p class="empty">No recordings yet. Start with Upload.</p>
+        {% if tab == "shared" %}
+            <p class="empty">No recordings have been shared with you yet.</p>
+        {% else %}
+            <p class="empty">No recordings yet. Start with Upload.</p>
+        {% endif %}
     </section>
 {% endfor %}
 {% endblock %}
