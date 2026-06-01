@@ -1,8 +1,15 @@
+import io
+import logging
+import os
+import subprocess
+import tempfile
 from datetime import timedelta
+from pathlib import Path
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.core.files.uploadedfile import InMemoryUploadedFile, UploadedFile
 from django.db.models import Count, Q, QuerySet, Sum
 from django.db.models.functions import TruncDate
 from django.shortcuts import get_object_or_404, redirect, render
@@ -10,6 +17,8 @@ from django.views.decorators.http import require_http_methods
 
 from .forms import CommentForm, RecordingBatchUploadForm, RecordingEditForm
 from .models import Instrument, Recording, SharedRecording, Tag
+
+logger = logging.getLogger(__name__)
 
 
 def _apply_filters(recordings: QuerySet[Recording], params) -> QuerySet[Recording]:
@@ -33,7 +42,73 @@ def _apply_filters(recordings: QuerySet[Recording], params) -> QuerySet[Recordin
     return recordings.distinct()
 
 
-def _extract_duration(file_obj) -> timedelta | None:
+def _trim_silence(file_obj: UploadedFile) -> UploadedFile:
+    """
+    Remove leading and trailing silence using ffmpeg's silenceremove filter.
+    Returns the original file unchanged if ffmpeg is not available or fails.
+    Threshold: -50 dB, minimum silence duration: 0.5 s.
+    """
+    name = file_obj.name or "audio.wav"
+    suffix = Path(name).suffix or ".wav"
+    tmp_in_path: str | None = None
+    tmp_out_path: str | None = None
+
+    try:
+        file_obj.seek(0)
+        raw = file_obj.read()
+
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp_in:
+            tmp_in.write(raw)
+            tmp_in_path = tmp_in.name
+
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp_out:
+            tmp_out_path = tmp_out.name
+
+        # Double-reverse trick: trim leading silence → reverse → trim again → reverse back.
+        af = (
+            "silenceremove=start_periods=1:start_silence=0.5:start_threshold=-50dB,"
+            "areverse,"
+            "silenceremove=start_periods=1:start_silence=0.5:start_threshold=-50dB,"
+            "areverse"
+        )
+        result = subprocess.run(
+            ["ffmpeg", "-y", "-i", tmp_in_path, "-af", af, tmp_out_path],
+            capture_output=True,
+            timeout=120,
+        )
+
+        if result.returncode != 0:
+            logger.warning("ffmpeg silence trim failed: %s", result.stderr.decode(errors="replace"))
+        else:
+            with open(tmp_out_path, "rb") as fh:
+                content = fh.read()
+            if content:
+                return InMemoryUploadedFile(
+                    file=io.BytesIO(content),
+                    field_name=None,
+                    name=name,
+                    content_type=getattr(file_obj, "content_type", "audio/mpeg"),
+                    size=len(content),
+                    charset=None,
+                )
+    except FileNotFoundError:
+        logger.warning("ffmpeg not found; skipping silence trim")
+    except subprocess.TimeoutExpired:
+        logger.warning("ffmpeg timed out trimming %s", name)
+    except Exception:
+        logger.exception("Unexpected error during silence trim for %s", name)
+    finally:
+        for path in filter(None, [tmp_in_path, tmp_out_path]):
+            try:
+                os.unlink(path)
+            except OSError:
+                pass
+
+    file_obj.seek(0)
+    return file_obj
+
+
+def _extract_duration(file_obj: UploadedFile) -> timedelta | None:
     try:
         import mutagen
 
@@ -55,6 +130,7 @@ def recording_upload(request):
         if form.is_valid():
             uploaded_files = form.cleaned_data["files"]
             tags = form.cleaned_data["tags"]
+            do_trim = form.cleaned_data.get("trim_silence", False)
             common_data = {
                 "owner": request.user,
                 "instrument": form.cleaned_data["instrument"],
@@ -67,6 +143,8 @@ def recording_upload(request):
             }
 
             for uploaded_file in uploaded_files:
+                if do_trim:
+                    uploaded_file = _trim_silence(uploaded_file)
                 duration = _extract_duration(uploaded_file)
                 recording = Recording.objects.create(
                     file=uploaded_file, duration=duration, **common_data

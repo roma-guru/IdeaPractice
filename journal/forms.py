@@ -36,6 +36,11 @@ class RecordingBatchUploadForm(forms.Form):
     location = forms.CharField(max_length=200, required=False)
     mood = forms.CharField(max_length=120, required=False)
     rating = forms.IntegerField(min_value=0, max_value=10, required=False)
+    trim_silence = forms.BooleanField(
+        required=False,
+        label="Trim silence",
+        help_text="Remove leading and trailing silence (requires ffmpeg).",
+    )
     notes = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 4}))
 
 

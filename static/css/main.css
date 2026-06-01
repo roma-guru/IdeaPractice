@@ -216,6 +216,20 @@ input, select, textarea {
 /* Chip variants */
 .chip-user { background: #eef3fd; color: var(--accent); border-color: #c5d5f5; }
 .chip-type { background: #f0f7f0; color: #2a6b2a; border-color: #b8d8b8; font-weight: 500; }
+/* Inline checkbox row */
+.toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 14px;
+}
+.toggle-row input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    accent-color: var(--accent);
+}
 /* Audio player */
 .player-wrap {
     margin-top: 12px;
