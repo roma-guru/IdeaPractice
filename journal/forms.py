@@ -1,4 +1,9 @@
+from __future__ import annotations
+
+from typing import Any
+
 from django import forms
+from django.core.files import File
 
 from .models import Comment, Instrument, Recording, Tag
 
@@ -8,7 +13,7 @@ class MultipleFileInput(forms.ClearableFileInput):
 
 
 class MultipleFileField(forms.FileField):
-    def clean(self, data, initial=None):
+    def clean(self, data: Any, initial: File | None = None) -> list[File]:
         single_file_clean = super().clean
         if isinstance(data, (list, tuple)):
             if not data:
@@ -18,7 +23,7 @@ class MultipleFileField(forms.FileField):
 
 
 class RecordingBatchUploadForm(forms.Form):
-    files = MultipleFileField(
+    files = MultipleFileField(  # type: ignore[assignment]
         widget=MultipleFileInput(),
         help_text="Select one or more recordings.",
     )
@@ -44,7 +49,7 @@ class RecordingBatchUploadForm(forms.Form):
     notes = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 4}))
 
 
-class RecordingEditForm(forms.ModelForm):
+class RecordingEditForm(forms.ModelForm):  # type: ignore[type-arg]
     tags = forms.ModelMultipleChoiceField(
         queryset=Tag.objects.all(),
         required=False,
@@ -60,7 +65,7 @@ class RecordingEditForm(forms.ModelForm):
         widgets = {"notes": forms.Textarea(attrs={"rows": 4})}
 
 
-class CommentForm(forms.ModelForm):
+class CommentForm(forms.ModelForm):  # type: ignore[type-arg]
     class Meta:
         model = Comment
         fields = ["text"]

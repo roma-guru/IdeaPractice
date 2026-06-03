@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 from pathlib import Path
 
 import pytest
-from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import Client
 from django.urls import reverse
 
 from journal.models import Comment, Instrument, Recording, Tag
@@ -10,19 +13,20 @@ from journal.models import Comment, Instrument, Recording, Tag
 pytestmark = pytest.mark.django_db
 
 
-def test_recording_list_requires_auth(client):
+def test_recording_list_requires_auth(client: Client) -> None:
     response = client.get(reverse("recording-list"))
     assert response.status_code == 302
-    assert "/auth/login/" in response.url
+    assert "/auth/login/" in response["Location"]
 
-def test_recording_upload_requires_auth(client):
+
+def test_recording_upload_requires_auth(client: Client) -> None:
     response = client.get(reverse("recording-upload"))
     assert response.status_code == 302
-    assert "/auth/login/" in response.url
+    assert "/auth/login/" in response["Location"]
 
 
-def test_batch_upload_creates_multiple_recordings(client):
-    get_user_model().objects.create_user(username="tester", password="secret123")
+def test_batch_upload_creates_multiple_recordings(client: Client) -> None:
+    User.objects.create_user(username="tester", password="secret123")
     client.login(username="tester", password="secret123")
 
     instrument = Instrument.objects.create(name="harmonica")
@@ -35,8 +39,8 @@ def test_batch_upload_creates_multiple_recordings(client):
         reverse("recording-upload"),
         data={
             "files": [file_one, file_two],
-            "instrument": str(instrument.id),
-            "tags": [str(tag.id)],
+            "instrument": str(instrument.pk),
+            "tags": [str(tag.pk)],
             "recording_type": Recording.RecordingType.IMPROVISATION,
             "idea_stage": Recording.IdeaStage.PROMISING,
             "location": "home",
@@ -47,12 +51,13 @@ def test_batch_upload_creates_multiple_recordings(client):
     )
 
     assert response.status_code == 302
-    assert response.url == reverse("recording-list")
+    assert response["Location"] == reverse("recording-list")
     assert Recording.objects.count() == 2
     assert Recording.objects.filter(tags=tag).count() == 2
 
-def test_batch_upload_with_single_file_creates_one_recording(client):
-    get_user_model().objects.create_user(username="tester3", password="secret123")
+
+def test_batch_upload_with_single_file_creates_one_recording(client: Client) -> None:
+    User.objects.create_user(username="tester3", password="secret123")
     client.login(username="tester3", password="secret123")
 
     instrument = Instrument.objects.create(name="piano")
@@ -62,7 +67,7 @@ def test_batch_upload_with_single_file_creates_one_recording(client):
         reverse("recording-upload"),
         data={
             "files": file_one,
-            "instrument": str(instrument.id),
+            "instrument": str(instrument.pk),
             "recording_type": Recording.RecordingType.PRACTICE,
             "idea_stage": Recording.IdeaStage.RAW,
             "location": "studio",
@@ -73,7 +78,7 @@ def test_batch_upload_with_single_file_creates_one_recording(client):
     )
 
     assert response.status_code == 302
-    assert response.url == reverse("recording-list")
+    assert response["Location"] == reverse("recording-list")
     assert Recording.objects.count() == 1
     saved = Recording.objects.get()
     assert Path(saved.file.name).suffix == ".wav"
@@ -82,8 +87,8 @@ def test_batch_upload_with_single_file_creates_one_recording(client):
     assert saved.recording_type == Recording.RecordingType.PRACTICE
 
 
-def test_batch_upload_requires_at_least_one_file(client):
-    get_user_model().objects.create_user(username="tester4", password="secret123")
+def test_batch_upload_requires_at_least_one_file(client: Client) -> None:
+    User.objects.create_user(username="tester4", password="secret123")
     client.login(username="tester4", password="secret123")
 
     response = client.post(
@@ -93,7 +98,6 @@ def test_batch_upload_requires_at_least_one_file(client):
             "location": "home",
             "mood": "focused",
             "rating": "7",
-            "is_practice": "on",
             "notes": "missing files test",
         },
     )
@@ -103,8 +107,8 @@ def test_batch_upload_requires_at_least_one_file(client):
     assert "files" in response.context["form"].errors
 
 
-def test_recording_list_filter_by_stage(client):
-    get_user_model().objects.create_user(username="tester2", password="secret123")
+def test_recording_list_filter_by_stage(client: Client) -> None:
+    User.objects.create_user(username="tester2", password="secret123")
     client.login(username="tester2", password="secret123")
 
     wav = SimpleUploadedFile("one.wav", b"RIFF....WAVE", content_type="audio/wav")
@@ -121,16 +125,16 @@ def test_recording_list_filter_by_stage(client):
     assert Path(recordings[0].file.name).suffix == ".mp3"
 
 
-def test_recording_detail_requires_auth(client):
+def test_recording_detail_requires_auth(client: Client) -> None:
     wav = SimpleUploadedFile("auth.wav", b"RIFF....WAVE", content_type="audio/wav")
     recording = Recording.objects.create(file=wav)
     response = client.get(reverse("recording-detail", args=[recording.pk]))
     assert response.status_code == 302
-    assert "/auth/login/" in response.url
+    assert "/auth/login/" in response["Location"]
 
 
-def test_recording_detail_get(client):
-    get_user_model().objects.create_user(username="detail_user", password="secret123")
+def test_recording_detail_get(client: Client) -> None:
+    User.objects.create_user(username="detail_user", password="secret123")
     client.login(username="detail_user", password="secret123")
 
     instrument = Instrument.objects.create(name="banjo")
@@ -144,8 +148,8 @@ def test_recording_detail_get(client):
     assert "comment_form" in response.context
 
 
-def test_recording_detail_edit(client):
-    get_user_model().objects.create_user(username="edit_user", password="secret123")
+def test_recording_detail_edit(client: Client) -> None:
+    User.objects.create_user(username="edit_user", password="secret123")
     client.login(username="edit_user", password="secret123")
 
     instrument = Instrument.objects.create(name="sitar")
@@ -156,7 +160,7 @@ def test_recording_detail_edit(client):
         reverse("recording-detail", args=[recording.pk]),
         data={
             "action": "edit",
-            "instrument": str(instrument.id),
+            "instrument": str(instrument.pk),
             "recording_type": Recording.RecordingType.PRACTICE,
             "idea_stage": Recording.IdeaStage.PROMISING,
             "location": "studio",
@@ -172,8 +176,8 @@ def test_recording_detail_edit(client):
     assert recording.notes == "updated notes"
 
 
-def test_recording_detail_add_comment(client):
-    get_user_model().objects.create_user(username="comment_user", password="secret123")
+def test_recording_detail_add_comment(client: Client) -> None:
+    User.objects.create_user(username="comment_user", password="secret123")
     client.login(username="comment_user", password="secret123")
 
     wav = SimpleUploadedFile("comment.wav", b"RIFF....WAVE", content_type="audio/wav")
@@ -189,14 +193,14 @@ def test_recording_detail_add_comment(client):
     assert Comment.objects.get(recording=recording).text == "try a different rhythm"
 
 
-def test_recording_stats_requires_auth(client):
+def test_recording_stats_requires_auth(client: Client) -> None:
     response = client.get(reverse("recording-stats"))
     assert response.status_code == 302
-    assert "/auth/login/" in response.url
+    assert "/auth/login/" in response["Location"]
 
 
-def test_recording_stats_get(client):
-    get_user_model().objects.create_user(username="stats_user", password="secret123")
+def test_recording_stats_get(client: Client) -> None:
+    User.objects.create_user(username="stats_user", password="secret123")
     client.login(username="stats_user", password="secret123")
 
     instrument = Instrument.objects.create(name="duduk")
@@ -212,8 +216,8 @@ def test_recording_stats_get(client):
     assert by_type.get(Recording.RecordingType.IMPROVISATION) == 1
 
 
-def test_recording_list_filters_by_multiple_params(client):
-    get_user_model().objects.create_user(username="tester5", password="secret123")
+def test_recording_list_filters_by_multiple_params(client: Client) -> None:
+    User.objects.create_user(username="tester5", password="secret123")
     client.login(username="tester5", password="secret123")
 
     guitar = Instrument.objects.create(name="guitar")
@@ -251,8 +255,8 @@ def test_recording_list_filters_by_multiple_params(client):
     response = client.get(
         reverse("recording-list"),
         {
-            "instrument": str(guitar.id),
-            "tag": str(ambient.id),
+            "instrument": str(guitar.pk),
+            "tag": str(ambient.pk),
             "kind": Recording.RecordingType.IMPROVISATION,
             "q": "texture",
         },
@@ -260,4 +264,4 @@ def test_recording_list_filters_by_multiple_params(client):
 
     assert response.status_code == 200
     recordings = list(response.context["recordings"])
-    assert [recording.id for recording in recordings] == [match.id]
+    assert [r.pk for r in recordings] == [match.pk]

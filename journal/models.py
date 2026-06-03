@@ -1,5 +1,10 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from django.conf import settings
 from django.db import models
+from django.db.models import Manager
 
 
 class Instrument(models.Model):
@@ -80,6 +85,10 @@ class Recording(models.Model):
     rating = models.PositiveSmallIntegerField(null=True, blank=True)
     tags = models.ManyToManyField(Tag, blank=True, related_name="recordings")
 
+    if TYPE_CHECKING:
+        shares: Manager[SharedRecording]
+        comments: Manager[Comment]
+
     class Meta:
         ordering = ["-created_at"]
 
@@ -104,7 +113,7 @@ class Comment(models.Model):
         ordering = ["created_at"]
 
     def __str__(self) -> str:
-        return f"Comment on recording {self.recording_id}"
+        return f"Comment on recording {self.recording.pk}"
 
 
 class SharedRecording(models.Model):

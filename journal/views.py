@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import io
 import logging
 import os
@@ -12,6 +14,7 @@ from django.core.exceptions import PermissionDenied
 from django.core.files.uploadedfile import InMemoryUploadedFile, UploadedFile
 from django.db.models import Count, Q, QuerySet, Sum
 from django.db.models.functions import TruncDate
+from django.http import HttpRequest, HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 
@@ -21,7 +24,7 @@ from .models import Instrument, Recording, SharedRecording, Tag
 logger = logging.getLogger(__name__)
 
 
-def _apply_filters(recordings: QuerySet[Recording], params) -> QuerySet[Recording]:
+def _apply_filters(recordings: QuerySet[Recording], params: QueryDict) -> QuerySet[Recording]:
     instrument = params.get("instrument")
     tag = params.get("tag")
     stage = params.get("stage")
@@ -110,10 +113,10 @@ def _trim_silence(file_obj: UploadedFile) -> UploadedFile:
 
 def _extract_duration(file_obj: UploadedFile) -> timedelta | None:
     try:
-        import mutagen
+        from mutagen import File as MutagenFile  # type: ignore[attr-defined]
 
         file_obj.seek(0)
-        audio = mutagen.File(file_obj)
+        audio = MutagenFile(file_obj)
         file_obj.seek(0)
         if audio and hasattr(audio, "info") and hasattr(audio.info, "length"):
             return timedelta(seconds=int(audio.info.length))
@@ -124,7 +127,7 @@ def _extract_duration(file_obj: UploadedFile) -> timedelta | None:
 
 @require_http_methods(["GET", "POST"])
 @login_required
-def recording_upload(request):
+def recording_upload(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         form = RecordingBatchUploadForm(request.POST, request.FILES)
         if form.is_valid():
@@ -159,7 +162,7 @@ def recording_upload(request):
 
 
 @login_required
-def recording_list(request):
+def recording_list(request: HttpRequest) -> HttpResponse:
     tab = request.GET.get("tab", "my")
 
     if tab == "shared":
@@ -194,7 +197,7 @@ def recording_list(request):
 
 @require_http_methods(["GET", "POST"])
 @login_required
-def recording_detail(request, pk):
+def recording_detail(request: HttpRequest, pk: int) -> HttpResponse:
     recording = get_object_or_404(
         Recording.objects.select_related("instrument", "owner").prefetch_related("tags"),
         pk=pk,
@@ -241,7 +244,7 @@ def recording_detail(request, pk):
 
 @require_http_methods(["GET", "POST"])
 @login_required
-def recording_share(request, pk):
+def recording_share(request: HttpRequest, pk: int) -> HttpResponse:
     recording = get_object_or_404(Recording, pk=pk)
     is_owner = recording.owner == request.user or recording.owner is None
     if not is_owner:
@@ -272,7 +275,7 @@ def recording_share(request, pk):
 
 
 @login_required
-def recording_stats(request):
+def recording_stats(request: HttpRequest) -> HttpResponse:
     user_recordings = Recording.objects.filter(
         Q(owner=request.user) | Q(owner__isnull=True)
     )

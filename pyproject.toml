@@ -19,6 +19,8 @@ dev = [
     "pytest-django>=4.8,<5.0",
     "pytest-xdist>=3.6,<4.0",
     "ruff>=0.6.0,<1.0.0",
+    "pyright>=1.1.0",
+    "django-stubs>=5.0,<6.0",
 ]
 
 [tool.ruff]
@@ -50,6 +52,14 @@ omit = [
     "*/migrations/*",
     "manage.py",
 ]
+
+[tool.pyright]
+pythonVersion = "3.14"
+typeCheckingMode = "standard"
+exclude = ["journal/migrations", ".venv"]
+
+[tool.django-stubs]
+django_settings_module = "config.settings"
 
 [tool.coverage.report]
 show_missing = true
