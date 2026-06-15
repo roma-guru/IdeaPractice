@@ -49,8 +49,10 @@ class Command(BaseCommand):
                 for p in procs:
                     ret = p.poll()
                     if ret is not None:
+                        args = p.args
+                        name = args[0] if isinstance(args, (list, tuple)) else str(args)
                         self.stderr.write(
-                            self.style.ERROR(f"Process {p.args[0]} exited with code {ret}")
+                            self.style.ERROR(f"Process {name} exited with code {ret}")
                         )
                         raise SystemExit(ret)
                 import time

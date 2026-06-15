@@ -171,7 +171,7 @@ class Invite(models.Model):
 
     @property
     def is_used(self) -> bool:
-        return self.used_by_id is not None
+        return self.used_by is not None
 
     def __str__(self) -> str:
         status = f"used by {self.used_by}" if self.is_used else "unused"

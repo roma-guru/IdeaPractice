@@ -11,13 +11,13 @@ from pathlib import Path
 from django.conf import settings
 from django.contrib.auth import get_user_model, login
 from django.contrib.auth.decorators import login_required
-from django.utils import timezone
 from django.core.exceptions import PermissionDenied
 from django.core.files.uploadedfile import InMemoryUploadedFile, UploadedFile
 from django.db.models import Count, Q, QuerySet, Sum
 from django.db.models.functions import TruncDate
 from django.http import HttpRequest, HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
 from .forms import CommentForm, RecordingBatchUploadForm, RecordingEditForm, RegisterForm
@@ -158,9 +158,9 @@ def recording_upload(request: HttpRequest) -> HttpResponse:
                 )
                 if tags:
                     recording.tags.set(tags)
-                analyse_recording.delay(recording.pk)
+                analyse_recording.delay(recording.pk)  # type: ignore[union-attr]
                 if settings.USE_SUNO and do_describe:
-                    auto_describe_recording.delay(recording.pk)
+                    auto_describe_recording.delay(recording.pk)  # type: ignore[union-attr]
                     recording.suno_status = Recording.SunoStatus.PENDING
                     recording.save(update_fields=["suno_status"])
             return redirect("recording-list")
@@ -300,7 +300,7 @@ def register(request: HttpRequest, code: str) -> HttpResponse:
     form = RegisterForm(request.POST if request.method == "POST" else None)
     if form and form.is_valid():
         User = get_user_model()
-        user = User.objects.create_user(
+        user = User.objects.create_user(  # type: ignore[union-attr]
             username=form.cleaned_data["username"],
             password=form.cleaned_data["password1"],
         )

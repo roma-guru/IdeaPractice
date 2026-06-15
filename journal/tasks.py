@@ -20,7 +20,7 @@ _KS_MINOR = np.array([6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69
 _NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
 
-def _detect_key(y: np.ndarray, sr: int) -> str:
+def _detect_key(y: np.ndarray, sr: int | float) -> str:
     import librosa
 
     chroma = librosa.feature.chroma_cqt(y=y, sr=sr).mean(axis=1)

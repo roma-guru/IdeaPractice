@@ -95,7 +95,7 @@ class RegisterForm(forms.Form):
         return username
 
     def clean(self) -> dict[str, Any]:
-        data = super().clean()
+        data: dict[str, Any] = super().clean() or {}
         p1 = data.get("password1")
         p2 = data.get("password2")
         if p1 and p2 and p1 != p2:
