@@ -210,8 +210,20 @@ msgstr "Имя пользователя"
 msgid "Password"
 msgstr "Пароль"
 
-msgid "Got an invite? <a href=\"#\" style=\"color:var(--accent);\">Enter your invite link</a> to create an account."
-msgstr "Есть приглашение? <a href=\"#\" style=\"color:var(--accent);\">Перейдите по ссылке</a>, чтобы создать аккаунт."
+msgid "Got an invite?"
+msgstr "Есть приглашение?"
+
+msgid "Enter your invite code"
+msgstr "Введите код приглашения"
+
+msgid "Paste invite code\u2026"
+msgstr "Вставьте код приглашения\u2026"
+
+msgid "Go"
+msgstr "Перейти"
+
+msgid "Please enter an invite code."
+msgstr "Пожалуйста, введите код приглашения."
 
 # register.html
 msgid "Invalid invite"

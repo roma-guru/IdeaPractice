@@ -209,8 +209,20 @@ msgstr "Όνομα χρήστη"
 msgid "Password"
 msgstr "Κωδικός"
 
-msgid "Got an invite? <a href=\"#\" style=\"color:var(--accent);\">Enter your invite link</a> to create an account."
-msgstr "Έχετε πρόσκληση; <a href=\"#\" style=\"color:var(--accent);\">Χρησιμοποιήστε τον σύνδεσμο πρόσκλησης</a> για να δημιουργήσετε λογαριασμό."
+msgid "Got an invite?"
+msgstr "Έχετε πρόσκληση;"
+
+msgid "Enter your invite code"
+msgstr "Εισάγετε τον κωδικό πρόσκλησης"
+
+msgid "Paste invite code\u2026"
+msgstr "Επικολλήστε τον κωδικό\u2026"
+
+msgid "Go"
+msgstr "Μετάβαση"
+
+msgid "Please enter an invite code."
+msgstr "Παρακαλώ εισάγετε κωδικό πρόσκλησης."
 
 # register.html
 msgid "Invalid invite"
