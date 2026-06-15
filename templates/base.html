@@ -1,32 +1,54 @@
 <!doctype html>
-<html lang="en">
+{% load i18n static %}
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
-    {% load static %}
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Audio Practice Journal</title>
+    <title>{% trans "Audio Practice Journal" %}</title>
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
 </head>
 <body>
 <div class="shell">
     <header class="topbar">
-        <div class="brand">Audio Practice & Idea Journal</div>
+        <div class="brand">{% trans "Audio Practice & Idea Journal" %}</div>
         <nav class="actions">
             {% if request.user.is_authenticated %}
-                <a href="{% url 'recording-list' %}">Recordings</a>
-                <a href="{% url 'recording-upload' %}">Upload</a>
-                <a href="{% url 'recording-stats' %}">Stats</a>
+                <a href="{% url 'recording-list' %}">{% trans "Recordings" %}</a>
+                <a href="{% url 'recording-upload' %}">{% trans "Upload" %}</a>
+                <a href="{% url 'recording-stats' %}">{% trans "Stats" %}</a>
                 <form method="post" action="{% url 'logout' %}" style="display:inline;">
                     {% csrf_token %}
-                    <button type="submit" class="button-link">Logout</button>
+                    <button type="submit" class="button-link">{% trans "Logout" %}</button>
                 </form>
             {% else %}
-                <a href="{% url 'login' %}">Login</a>
+                <a href="{% url 'login' %}">{% trans "Login" %}</a>
             {% endif %}
+            <div class="lang-switcher">
+                <button class="lang-btn" id="lang-toggle" aria-label="{% trans "Change language" %}">🌐</button>
+                <div class="lang-dropdown" id="lang-dropdown" hidden>
+                    <form method="post" action="{% url 'set_language' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button type="submit" name="language" value="en"{% if LANGUAGE_CODE == "en" %} class="lang-active"{% endif %}>EN</button>
+                        <button type="submit" name="language" value="ru"{% if LANGUAGE_CODE == "ru" %} class="lang-active"{% endif %}>RU</button>
+                        <button type="submit" name="language" value="el"{% if LANGUAGE_CODE == "el" %} class="lang-active"{% endif %}>ΕΛ</button>
+                        <button type="submit" name="language" value="es"{% if LANGUAGE_CODE == "es" %} class="lang-active"{% endif %}>ES</button>
+                    </form>
+                </div>
+            </div>
         </nav>
     </header>
     {% block content %}{% endblock %}
 </div>
 {% block extra_js %}{% endblock %}
+<script>
+(function(){
+    const btn = document.getElementById('lang-toggle')
+    const dd  = document.getElementById('lang-dropdown')
+    if (!btn) return
+    btn.addEventListener('click', function(e){ e.stopPropagation(); dd.hidden = !dd.hidden })
+    document.addEventListener('click', function(){ dd.hidden = true })
+})()
+</script>
 </body>
 </html>

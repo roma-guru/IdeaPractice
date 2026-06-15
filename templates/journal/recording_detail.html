@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load journal_extras %}
+{% load i18n journal_extras %}
 
 {% block content %}
 <section class="panel">
@@ -18,7 +18,7 @@
                 {% if recording.mood %} · {{ recording.mood }}{% endif %}
             </p>
             {% if not is_owner and recording.owner %}
-                <p class="meta" style="margin-top:4px;">shared by <strong>{{ recording.owner.username }}</strong></p>
+                <p class="meta" style="margin-top:4px;">{% blocktrans with username=recording.owner.username %}shared by <strong>{{ username }}</strong>{% endblocktrans %}</p>
             {% endif %}
             <div class="chips" style="margin-top:8px;">
                 <span class="chip chip-type">{{ recording.get_recording_type_display }}</span>
@@ -28,9 +28,9 @@
             </div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
-            <a href="{% url 'recording-list' %}" class="btn-back">← Back</a>
+            <a href="{% url 'recording-list' %}" class="btn-back">{% trans "← Back" %}</a>
             {% if is_owner %}
-                <a href="{% url 'recording-share' recording.pk %}" class="btn-share">Share</a>
+                <a href="{% url 'recording-share' recording.pk %}" class="btn-share">{% trans "Share" %}</a>
             {% endif %}
         </div>
     </div>
@@ -38,7 +38,7 @@
     <div class="waveform-player">
         <div class="waveform-wave wf-loading" id="wf-wave" data-url="{{ recording.file.url }}"></div>
         <div class="waveform-controls">
-            <button class="wf-play-btn" id="wf-play" aria-label="Play / Pause">
+            <button class="wf-play-btn" id="wf-play" aria-label="{% trans "Play / Pause" %}">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
                     <polygon class="wf-icon-play" points="3,1 13,7 3,13"/>
                     <g class="wf-icon-pause" style="display:none">
@@ -60,7 +60,7 @@
 
 {% if is_owner %}
 <section class="panel">
-    <h2 style="margin:0 0 4px;font-size:16px;">Shared with</h2>
+    <h2 style="margin:0 0 4px;font-size:16px;">{% trans "Shared with" %}</h2>
     {% if shared_with_users %}
         <div class="chips" style="margin-bottom:10px;">
             {% for share in shared_with_users %}
@@ -68,72 +68,74 @@
             {% endfor %}
         </div>
     {% else %}
-        <p class="empty" style="margin-bottom:10px;">Not shared with anyone yet.</p>
+        <p class="empty" style="margin-bottom:10px;">{% trans "Not shared with anyone yet." %}</p>
     {% endif %}
-    <a href="{% url 'recording-share' recording.pk %}" class="btn-share">Manage sharing</a>
+    <a href="{% url 'recording-share' recording.pk %}" class="btn-share">{% trans "Manage sharing" %}</a>
 </section>
 {% endif %}
 
 {% if is_owner %}
 <section class="panel">
-    <h2 style="margin:0 0 12px;font-size:16px;">Edit</h2>
+    <h2 style="margin:0 0 12px;font-size:16px;">{% trans "Edit" %}</h2>
     {% if edit_form.errors %}
-        <p class="empty" style="color:#b3261e;margin-bottom:10px;">Please fix the errors below.</p>
+        <p class="empty" style="color:#b3261e;margin-bottom:10px;">{% trans "Please fix the errors below." %}</p>
     {% endif %}
     <form method="post">
         {% csrf_token %}
         <input type="hidden" name="action" value="edit">
         <div class="grid">
             <div>
-                <label for="{{ edit_form.instrument.id_for_label }}">Instrument</label>
+                <label for="{{ edit_form.instrument.id_for_label }}">{% trans "Instrument" %}</label>
                 {{ edit_form.instrument }}
             </div>
             <div>
-                <label for="{{ edit_form.recording_type.id_for_label }}">Type</label>
+                <label for="{{ edit_form.recording_type.id_for_label }}">{% trans "Type" %}</label>
                 {{ edit_form.recording_type }}
             </div>
             <div>
-                <label for="{{ edit_form.idea_stage.id_for_label }}">Idea Stage</label>
+                <label for="{{ edit_form.idea_stage.id_for_label }}">{% trans "Idea Stage" %}</label>
                 {{ edit_form.idea_stage }}
             </div>
             <div>
-                <label for="{{ edit_form.rating.id_for_label }}">Rating</label>
+                <label for="{{ edit_form.rating.id_for_label }}">{% trans "Rating" %}</label>
                 {{ edit_form.rating }}
             </div>
             <div>
-                <label for="{{ edit_form.location.id_for_label }}">Location</label>
+                <label for="{{ edit_form.location.id_for_label }}">{% trans "Location" %}</label>
                 {{ edit_form.location }}
             </div>
             <div>
-                <label for="{{ edit_form.mood.id_for_label }}">Mood</label>
+                <label for="{{ edit_form.mood.id_for_label }}">{% trans "Mood" %}</label>
                 {{ edit_form.mood }}
             </div>
             <div>
-                <label for="{{ edit_form.bpm.id_for_label }}">BPM</label>
+                <label for="{{ edit_form.bpm.id_for_label }}">{% trans "BPM" %}</label>
                 {{ edit_form.bpm }}
             </div>
             <div>
-                <label for="{{ edit_form.key.id_for_label }}">Key</label>
+                <label for="{{ edit_form.key.id_for_label }}">{% trans "Key" %}</label>
                 {{ edit_form.key }}
             </div>
         </div>
         <div class="panel" style="margin-top:10px;">
-            <label>Tags</label>
+            <label>{% trans "Tags" %}</label>
             {{ edit_form.tags }}
         </div>
         <div style="margin-top:10px;">
-            <label for="{{ edit_form.notes.id_for_label }}">Notes</label>
+            <label for="{{ edit_form.notes.id_for_label }}">{% trans "Notes" %}</label>
             {{ edit_form.notes }}
         </div>
         <div style="margin-top:12px;">
-            <button class="button" type="submit">Save Changes</button>
+            <button class="button" type="submit">{% trans "Save Changes" %}</button>
         </div>
     </form>
 </section>
 {% endif %}
 
 <section class="panel">
-    <h2 style="margin:0 0 12px;font-size:16px;">Comments ({{ comments|length }})</h2>
+    {% with count=comments|length %}
+    <h2 style="margin:0 0 12px;font-size:16px;">{% blocktrans %}Comments ({{ count }}){% endblocktrans %}</h2>
+    {% endwith %}
     {% for comment in comments %}
     <div class="comment-item">
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
@@ -143,7 +145,7 @@
         <p style="margin:4px 0 0;white-space:pre-wrap;font-size:14px;">{{ comment.text }}</p>
     </div>
     {% empty %}
-    <p class="empty">No comments yet.</p>
+    <p class="empty">{% trans "No comments yet." %}</p>
     {% endfor %}
     <form method="post" style="margin-top:14px;">
         {% csrf_token %}
@@ -151,7 +153,7 @@
         <label for="{{ comment_form.text.id_for_label }}">{{ comment_form.text.label }}</label>
         {{ comment_form.text }}
         <div style="margin-top:8px;">
-            <button class="button" type="submit">Add Comment</button>
+            <button class="button" type="submit">{% trans "Add Comment" %}</button>
         </div>
     </form>
 </section>

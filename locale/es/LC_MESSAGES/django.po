@@ -1,0 +1,373 @@
+# Spanish translations for Audio Practice Journal
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+# base.html
+msgid "Audio Practice Journal"
+msgstr "Diario de práctica musical"
+
+msgid "Audio Practice & Idea Journal"
+msgstr "Diario de práctica e ideas musicales"
+
+msgid "Recordings"
+msgstr "Grabaciones"
+
+msgid "Upload"
+msgstr "Subir"
+
+msgid "Stats"
+msgstr "Estadísticas"
+
+msgid "Logout"
+msgstr "Cerrar sesión"
+
+msgid "Login"
+msgstr "Iniciar sesión"
+
+msgid "Change language"
+msgstr "Cambiar idioma"
+
+# recording_list.html
+msgid "My Files"
+msgstr "Mis archivos"
+
+msgid "Shared with Me"
+msgstr "Compartido conmigo"
+
+msgid "Instrument"
+msgstr "Instrumento"
+
+msgid "Any"
+msgstr "Cualquiera"
+
+msgid "Tag"
+msgstr "Etiqueta"
+
+msgid "Idea Stage"
+msgstr "Etapa de la idea"
+
+msgid "Type"
+msgstr "Tipo"
+
+msgid "Notes Search"
+msgstr "Buscar en notas"
+
+msgid "Apply Filters"
+msgstr "Aplicar filtros"
+
+msgid "shared by %(username)s"
+msgstr "compartido por %(username)s"
+
+msgid "View / Edit"
+msgstr "Ver / Editar"
+
+msgid "No recordings have been shared with you yet."
+msgstr "Aún no se han compartido grabaciones contigo."
+
+msgid "No recordings yet. Start with Upload."
+msgstr "Sin grabaciones aún. Comienza subiendo una."
+
+msgid "Play / Pause"
+msgstr "Reproducir / Pausa"
+
+# recording_upload.html
+msgid "Batch Upload Recordings"
+msgstr "Subir grabaciones"
+
+msgid "Please fix the highlighted fields and try again."
+msgstr "Corrige los campos marcados e inténtalo de nuevo."
+
+msgid "Files"
+msgstr "Archivos"
+
+msgid "Rating"
+msgstr "Valoración"
+
+msgid "Location"
+msgstr "Ubicación"
+
+msgid "Mood"
+msgstr "Estado de ánimo"
+
+msgid "Tags"
+msgstr "Etiquetas"
+
+msgid "Notes"
+msgstr "Notas"
+
+msgid "Save Recordings"
+msgstr "Guardar grabaciones"
+
+# recording_detail.html
+msgid "shared by <strong>%(username)s</strong>"
+msgstr "compartido por <strong>%(username)s</strong>"
+
+msgid "← Back"
+msgstr "← Atrás"
+
+msgid "Share"
+msgstr "Compartir"
+
+msgid "Shared with"
+msgstr "Compartido con"
+
+msgid "Not shared with anyone yet."
+msgstr "Aún no compartido con nadie."
+
+msgid "Manage sharing"
+msgstr "Gestionar acceso"
+
+msgid "Edit"
+msgstr "Editar"
+
+msgid "Please fix the errors below."
+msgstr "Corrige los errores a continuación."
+
+msgid "BPM"
+msgstr "BPM"
+
+msgid "Key"
+msgstr "Tonalidad"
+
+msgid "Save Changes"
+msgstr "Guardar cambios"
+
+msgid "Comments (%(count)s)"
+msgstr "Comentarios (%(count)s)"
+
+msgid "No comments yet."
+msgstr "Sin comentarios aún."
+
+msgid "Add Comment"
+msgstr "Añadir comentario"
+
+# stats.html
+msgid "Statistics"
+msgstr "Estadísticas"
+
+msgid "Total time recorded"
+msgstr "Tiempo total grabado"
+
+msgid "By Type"
+msgstr "Por tipo"
+
+msgid "By Instrument"
+msgstr "Por instrumento"
+
+msgid "(no instrument)"
+msgstr "(sin instrumento)"
+
+msgid "No recordings yet."
+msgstr "Sin grabaciones aún."
+
+msgid "Recent Activity"
+msgstr "Actividad reciente"
+
+msgid "No activity yet."
+msgstr "Sin actividad aún."
+
+msgid "rec."
+msgstr "grab."
+
+msgid "%(count)s recording"
+msgid_plural "%(count)s recordings"
+msgstr[0] "%(count)s grabación"
+msgstr[1] "%(count)s grabaciones"
+
+# recording_share.html
+msgid "Share Recording"
+msgstr "Compartir grabación"
+
+msgid "Select musicians to share with"
+msgstr "Selecciona músicos para compartir"
+
+msgid "Shared"
+msgstr "Compartido"
+
+msgid "Save"
+msgstr "Guardar"
+
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgid "No other users found. Invite your musician friends to create accounts first."
+msgstr "No se encontraron otros usuarios. Primero invita a tus amigos músicos."
+
+# login.html
+msgid "Sign In"
+msgstr "Iniciar sesión"
+
+msgid "Invalid username or password."
+msgstr "Usuario o contraseña incorrectos."
+
+msgid "Username"
+msgstr "Usuario"
+
+msgid "Password"
+msgstr "Contraseña"
+
+msgid "Got an invite? <a href=\"#\" style=\"color:var(--accent);\">Enter your invite link</a> to create an account."
+msgstr "¿Tienes una invitación? <a href=\"#\" style=\"color:var(--accent);\">Usa tu enlace de invitación</a> para crear una cuenta."
+
+# register.html
+msgid "Invalid invite"
+msgstr "Invitación inválida"
+
+msgid "This invite link is not valid. Ask for a new one."
+msgstr "Este enlace de invitación no es válido. Solicita uno nuevo."
+
+msgid "Invite already used"
+msgstr "Invitación ya utilizada"
+
+msgid "This invite has already been used to create an account."
+msgstr "Esta invitación ya se usó para crear una cuenta."
+
+msgid "Already have an account?"
+msgstr "¿Ya tienes una cuenta?"
+
+msgid "Sign in"
+msgstr "Inicia sesión"
+
+msgid "Create account"
+msgstr "Crear cuenta"
+
+msgid "Invited by <strong>%(username)s</strong> · %(note)s"
+msgstr "Invitado por <strong>%(username)s</strong> · %(note)s"
+
+msgid "Confirm password"
+msgstr "Confirmar contraseña"
+
+# forms.py
+msgid "Select one or more recordings."
+msgstr "Selecciona una o más grabaciones."
+
+msgid "Trim silence"
+msgstr "Recortar silencio"
+
+msgid "Remove leading and trailing silence (requires ffmpeg)."
+msgstr "Eliminar silencio al inicio y al final (requiere ffmpeg)."
+
+msgid "Auto-describe"
+msgstr "Auto-descripción"
+
+msgid "Use Suno AI to suggest notes, mood, and tags (requires USE_SUNO)."
+msgstr "Usar Suno AI para sugerir notas, estado de ánimo y etiquetas (requiere USE_SUNO)."
+
+msgid "This username is already taken."
+msgstr "Este nombre de usuario ya está en uso."
+
+msgid "Passwords do not match."
+msgstr "Las contraseñas no coinciden."
+
+msgid "What to try next, what didn't work, ideas..."
+msgstr "Qué probar después, qué no funcionó, ideas..."
+
+msgid "Add a comment"
+msgstr "Añadir un comentario"
+
+# models.py — IdeaStage
+msgid "Raw"
+msgstr "En bruto"
+
+msgid "Promising"
+msgstr "Prometedor"
+
+msgid "Needs work"
+msgstr "Necesita trabajo"
+
+msgid "Developed"
+msgstr "Desarrollado"
+
+msgid "Archived"
+msgstr "Archivado"
+
+# models.py — RecordingType
+msgid "Practice"
+msgstr "Práctica"
+
+msgid "Improvisation"
+msgstr "Improvisación"
+
+msgid "Composition"
+msgstr "Composición"
+
+msgid "Jam Session"
+msgstr "Sesión de jam"
+
+msgid "Live Performance"
+msgstr "Actuación en vivo"
+
+msgid "Cover"
+msgstr "Cover"
+
+msgid "Demo"
+msgstr "Demo"
+
+msgid "Imported"
+msgstr "Importado"
+
+# models.py — SunoStatus
+msgid "Pending"
+msgstr "Pendiente"
+
+msgid "Processing"
+msgstr "Procesando"
+
+msgid "Done"
+msgstr "Hecho"
+
+msgid "Failed"
+msgstr "Fallido"
+
+msgid "Skipped"
+msgstr "Omitido"
+
+# models.py — Instrument.Family
+msgid "String"
+msgstr "Cuerda"
+
+msgid "Keys"
+msgstr "Teclado"
+
+msgid "Synth"
+msgstr "Sintetizador"
+
+msgid "Wind"
+msgstr "Viento"
+
+msgid "Brass"
+msgstr "Metal"
+
+msgid "Percussion"
+msgstr "Percusión"
+
+msgid "Voice"
+msgstr "Voz"
+
+msgid "Electronic"
+msgstr "Electrónico"
+
+msgid "Field Recording"
+msgstr "Grabación de campo"
+
+msgid "Other"
+msgstr "Otro"
+
+# models.py — Tag.Category
+msgid "Technique"
+msgstr "Técnica"
+
+msgid "Rhythm"
+msgstr "Ritmo"
+
+msgid "Genre"
+msgstr "Género"
+
+msgid "Experiment"
+msgstr "Experimento"
+
+msgid "Environment"
+msgstr "Entorno"

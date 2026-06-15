@@ -1,20 +1,20 @@
 {% extends "base.html" %}
-{% load journal_extras %}
+{% load i18n journal_extras %}
 
 {% block content %}
 <section class="panel">
     <div class="detail-header">
         <div>
-            <h1 style="margin:0 0 4px;font-size:18px;">Share Recording</h1>
+            <h1 style="margin:0 0 4px;font-size:18px;">{% trans "Share Recording" %}</h1>
             <p class="meta">{{ recording.file.name|basename }}</p>
         </div>
-        <a href="{% url 'recording-detail' recording.pk %}" class="btn-back">← Back</a>
+        <a href="{% url 'recording-detail' recording.pk %}" class="btn-back">{% trans "← Back" %}</a>
     </div>
 </section>
 
 <section class="panel">
     {% if users_with_status %}
-        <h2 style="margin:0 0 12px;font-size:16px;">Select musicians to share with</h2>
+        <h2 style="margin:0 0 12px;font-size:16px;">{% trans "Select musicians to share with" %}</h2>
         <form method="post">
             {% csrf_token %}
             <div class="share-user-list">
@@ -24,20 +24,20 @@
                                {% if is_shared %}checked{% endif %}>
                         <span class="share-user-name">{{ user.username }}</span>
                         {% if is_shared %}
-                            <span class="chip" style="margin-left:auto;">Shared</span>
+                            <span class="chip" style="margin-left:auto;">{% trans "Shared" %}</span>
                         {% endif %}
                     </label>
                 {% endfor %}
             </div>
             <div style="margin-top:16px;display:flex;gap:10px;">
-                <button class="button" type="submit">Save</button>
-                <a href="{% url 'recording-detail' recording.pk %}" class="btn-back">Cancel</a>
+                <button class="button" type="submit">{% trans "Save" %}</button>
+                <a href="{% url 'recording-detail' recording.pk %}" class="btn-back">{% trans "Cancel" %}</a>
             </div>
         </form>
     {% else %}
-        <p class="empty">No other users found. Invite your musician friends to create accounts first.</p>
+        <p class="empty">{% trans "No other users found. Invite your musician friends to create accounts first." %}</p>
         <div style="margin-top:12px;">
-            <a href="{% url 'recording-detail' recording.pk %}" class="btn-back">← Back</a>
+            <a href="{% url 'recording-detail' recording.pk %}" class="btn-back">{% trans "← Back" %}</a>
         </div>
     {% endif %}
 </section>

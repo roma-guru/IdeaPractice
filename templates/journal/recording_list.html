@@ -1,19 +1,19 @@
 {% extends "base.html" %}
-{% load journal_extras %}
+{% load i18n journal_extras %}
 
 {% block content %}
 <section class="panel">
     <div class="tabs">
-        <a href="?tab=my" class="tab {% if tab == 'my' %}tab-active{% endif %}">My Files</a>
-        <a href="?tab=shared" class="tab {% if tab == 'shared' %}tab-active{% endif %}">Shared with Me</a>
+        <a href="?tab=my" class="tab {% if tab == 'my' %}tab-active{% endif %}">{% trans "My Files" %}</a>
+        <a href="?tab=shared" class="tab {% if tab == 'shared' %}tab-active{% endif %}">{% trans "Shared with Me" %}</a>
     </div>
 
     <form method="get" class="grid" style="margin-top:12px;">
         <input type="hidden" name="tab" value="{{ tab }}">
         <div>
-            <label for="instrument">Instrument</label>
+            <label for="instrument">{% trans "Instrument" %}</label>
             <select name="instrument" id="instrument">
-                <option value="">Any</option>
+                <option value="">{% trans "Any" %}</option>
                 {% for instrument in instruments %}
                     <option value="{{ instrument.id }}" {% if request.GET.instrument == instrument.id|stringformat:"s" %}selected{% endif %}>
                         {{ instrument.name }}
@@ -22,9 +22,9 @@
             </select>
         </div>
         <div>
-            <label for="tag">Tag</label>
+            <label for="tag">{% trans "Tag" %}</label>
             <select name="tag" id="tag">
-                <option value="">Any</option>
+                <option value="">{% trans "Any" %}</option>
                 {% for tag in tags %}
                     <option value="{{ tag.id }}" {% if request.GET.tag == tag.id|stringformat:"s" %}selected{% endif %}>
                         {{ tag.name }}
@@ -33,29 +33,29 @@
             </select>
         </div>
         <div>
-            <label for="stage">Idea Stage</label>
+            <label for="stage">{% trans "Idea Stage" %}</label>
             <select name="stage" id="stage">
-                <option value="">Any</option>
+                <option value="">{% trans "Any" %}</option>
                 {% for value, label in idea_stages %}
                     <option value="{{ value }}" {% if request.GET.stage == value %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
             </select>
         </div>
         <div>
-            <label for="kind">Type</label>
+            <label for="kind">{% trans "Type" %}</label>
             <select name="kind" id="kind">
-                <option value="">Any</option>
+                <option value="">{% trans "Any" %}</option>
                 {% for value, label in recording_types %}
                     <option value="{{ value }}" {% if request.GET.kind == value %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
             </select>
         </div>
         <div style="grid-column: 1 / -1;">
-            <label for="q">Notes Search</label>
+            <label for="q">{% trans "Notes Search" %}</label>
             <input id="q" name="q" value="{{ request.GET.q|default:'' }}" placeholder="rhythm pattern, texture, ...">
         </div>
         <div style="grid-column: 1 / -1;">
-            <button class="button" type="submit">Apply Filters</button>
+            <button class="button" type="submit">{% trans "Apply Filters" %}</button>
         </div>
     </form>
 </section>
@@ -65,7 +65,7 @@
         <div class="recording-item-header">
             <h3>{{ recording.file.name|basename }}</h3>
             {% if tab == "shared" and recording.owner %}
-                <span class="shared-by-badge">shared by {{ recording.owner.username }}</span>
+                <span class="shared-by-badge">{% blocktrans with username=recording.owner.username %}shared by {{ username }}{% endblocktrans %}</span>
             {% endif %}
         </div>
         <p class="meta">
@@ -87,7 +87,7 @@
             <div class="wf-mini-player">
                 <div class="wf-mini-wave wf-loading" data-url="{{ recording.file.url }}"></div>
                 <div class="wf-mini-controls">
-                    <button class="wf-mini-play" aria-label="Play / Pause">
+                    <button class="wf-mini-play" aria-label="{% trans "Play / Pause" %}">
                         <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor">
                             <polygon class="wf-icon-play" points="2,1 10,5.5 2,10"/>
                             <g class="wf-icon-pause" style="display:none">
@@ -101,15 +101,15 @@
             </div>
         {% endif %}
         <div style="margin-top:10px;">
-            <a href="{% url 'recording-detail' recording.pk %}" class="btn-detail">View / Edit</a>
+            <a href="{% url 'recording-detail' recording.pk %}" class="btn-detail">{% trans "View / Edit" %}</a>
         </div>
     </article>
 {% empty %}
     <section class="panel">
         {% if tab == "shared" %}
-            <p class="empty">No recordings have been shared with you yet.</p>
+            <p class="empty">{% trans "No recordings have been shared with you yet." %}</p>
         {% else %}
-            <p class="empty">No recordings yet. Start with Upload.</p>
+            <p class="empty">{% trans "No recordings yet. Start with Upload." %}</p>
         {% endif %}
     </section>
 {% endfor %}

@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 from django.conf import settings
 from django.db import models
 from django.db.models import Manager
+from django.utils.translation import gettext_lazy as _
 
 
 def _invite_code() -> str:
@@ -14,16 +15,16 @@ def _invite_code() -> str:
 
 class Instrument(models.Model):
     class Family(models.TextChoices):
-        STRING = "string", "String"
-        KEYS = "keys", "Keys"
-        SYNTH = "synth", "Synth"
-        WIND = "wind", "Wind"
-        BRASS = "brass", "Brass"
-        PERCUSSION = "percussion", "Percussion"
-        VOICE = "voice", "Voice"
-        ELECTRONIC = "electronic", "Electronic"
-        FIELD = "field", "Field Recording"
-        OTHER = "other", "Other"
+        STRING = "string", _("String")
+        KEYS = "keys", _("Keys")
+        SYNTH = "synth", _("Synth")
+        WIND = "wind", _("Wind")
+        BRASS = "brass", _("Brass")
+        PERCUSSION = "percussion", _("Percussion")
+        VOICE = "voice", _("Voice")
+        ELECTRONIC = "electronic", _("Electronic")
+        FIELD = "field", _("Field Recording")
+        OTHER = "other", _("Other")
 
     name = models.CharField(max_length=120, unique=True)
     family = models.CharField(
@@ -40,12 +41,12 @@ class Instrument(models.Model):
 
 class Tag(models.Model):
     class Category(models.TextChoices):
-        TECHNIQUE = "technique", "Technique"
-        RHYTHM = "rhythm", "Rhythm"
-        MOOD = "mood", "Mood"
-        GENRE = "genre", "Genre"
-        EXPERIMENT = "experiment", "Experiment"
-        ENVIRONMENT = "environment", "Environment"
+        TECHNIQUE = "technique", _("Technique")
+        RHYTHM = "rhythm", _("Rhythm")
+        MOOD = "mood", _("Mood")
+        GENRE = "genre", _("Genre")
+        EXPERIMENT = "experiment", _("Experiment")
+        ENVIRONMENT = "environment", _("Environment")
 
     name = models.CharField(max_length=120, unique=True)
     category = models.CharField(max_length=32, choices=Category.choices, default=Category.EXPERIMENT)
@@ -59,28 +60,28 @@ class Tag(models.Model):
 
 class Recording(models.Model):
     class IdeaStage(models.TextChoices):
-        RAW = "raw", "Raw"
-        PROMISING = "promising", "Promising"
-        NEEDS_WORK = "needs_work", "Needs work"
-        DEVELOPED = "developed", "Developed"
-        ARCHIVED = "archived", "Archived"
+        RAW = "raw", _("Raw")
+        PROMISING = "promising", _("Promising")
+        NEEDS_WORK = "needs_work", _("Needs work")
+        DEVELOPED = "developed", _("Developed")
+        ARCHIVED = "archived", _("Archived")
 
     class RecordingType(models.TextChoices):
-        PRACTICE = "practice", "Practice"
-        IMPROVISATION = "improvisation", "Improvisation"
-        COMPOSITION = "composition", "Composition"
-        JAM = "jam", "Jam Session"
-        LIVE = "live", "Live Performance"
-        COVER = "cover", "Cover"
-        DEMO = "demo", "Demo"
-        IMPORTED = "imported", "Imported"
+        PRACTICE = "practice", _("Practice")
+        IMPROVISATION = "improvisation", _("Improvisation")
+        COMPOSITION = "composition", _("Composition")
+        JAM = "jam", _("Jam Session")
+        LIVE = "live", _("Live Performance")
+        COVER = "cover", _("Cover")
+        DEMO = "demo", _("Demo")
+        IMPORTED = "imported", _("Imported")
 
     class SunoStatus(models.TextChoices):
-        PENDING = "pending", "Pending"
-        PROCESSING = "processing", "Processing"
-        DONE = "done", "Done"
-        FAILED = "failed", "Failed"
-        SKIPPED = "skipped", "Skipped"
+        PENDING = "pending", _("Pending")
+        PROCESSING = "processing", _("Processing")
+        DONE = "done", _("Done")
+        FAILED = "failed", _("Failed")
+        SKIPPED = "skipped", _("Skipped")
 
     file = models.FileField(upload_to="recordings/%Y/%m/")
     created_at = models.DateTimeField(auto_now_add=True)

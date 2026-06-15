@@ -1,46 +1,47 @@
 {% extends "base.html" %}
+{% load i18n %}
 
 {% block content %}
 <section class="panel">
-    <h1 style="margin-top:0;font-size:20px;">Batch Upload Recordings</h1>
+    <h1 style="margin-top:0;font-size:20px;">{% trans "Batch Upload Recordings" %}</h1>
     {% if form.errors %}
-        <p class="empty" style="color:#b3261e;">Please fix the highlighted fields and try again.</p>
+        <p class="empty" style="color:#b3261e;">{% trans "Please fix the highlighted fields and try again." %}</p>
     {% endif %}
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="grid">
             <div>
-                <label for="{{ form.files.id_for_label }}">Files</label>
+                <label for="{{ form.files.id_for_label }}">{% trans "Files" %}</label>
                 {{ form.files }}
             </div>
             <div>
-                <label for="{{ form.instrument.id_for_label }}">Instrument</label>
+                <label for="{{ form.instrument.id_for_label }}">{% trans "Instrument" %}</label>
                 {{ form.instrument }}
             </div>
             <div>
-                <label for="{{ form.recording_type.id_for_label }}">Type</label>
+                <label for="{{ form.recording_type.id_for_label }}">{% trans "Type" %}</label>
                 {{ form.recording_type }}
             </div>
             <div>
-                <label for="{{ form.idea_stage.id_for_label }}">Idea Stage</label>
+                <label for="{{ form.idea_stage.id_for_label }}">{% trans "Idea Stage" %}</label>
                 {{ form.idea_stage }}
             </div>
             <div>
-                <label for="{{ form.rating.id_for_label }}">Rating</label>
+                <label for="{{ form.rating.id_for_label }}">{% trans "Rating" %}</label>
                 {{ form.rating }}
             </div>
             <div>
-                <label for="{{ form.location.id_for_label }}">Location</label>
+                <label for="{{ form.location.id_for_label }}">{% trans "Location" %}</label>
                 {{ form.location }}
             </div>
             <div>
-                <label for="{{ form.mood.id_for_label }}">Mood</label>
+                <label for="{{ form.mood.id_for_label }}">{% trans "Mood" %}</label>
                 {{ form.mood }}
             </div>
         </div>
         <p class="meta">{{ form.files.help_text }}</p>
         <div class="panel" style="margin-top:10px;">
-            <label>Tags</label>
+            <label>{% trans "Tags" %}</label>
             {{ form.tags }}
         </div>
         <label class="toggle-row" style="margin-top:10px;">
@@ -60,11 +61,11 @@
         </label>
         {% endif %}
         <div style="margin-top:10px;">
-            <label for="{{ form.notes.id_for_label }}">Notes</label>
+            <label for="{{ form.notes.id_for_label }}">{% trans "Notes" %}</label>
             {{ form.notes }}
         </div>
         <div style="margin-top:12px;">
-            <button class="button" type="submit">Save Recordings</button>
+            <button class="button" type="submit">{% trans "Save Recordings" %}</button>
         </div>
     </form>
 </section>

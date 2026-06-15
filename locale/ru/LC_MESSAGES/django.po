@@ -1,0 +1,374 @@
+# Russian translations for Audio Practice Journal
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+# base.html
+msgid "Audio Practice Journal"
+msgstr "Практика и архив идей"
+
+msgid "Audio Practice & Idea Journal"
+msgstr "Практика и архив идей"
+
+msgid "Recordings"
+msgstr "Записи"
+
+msgid "Upload"
+msgstr "Загрузить"
+
+msgid "Stats"
+msgstr "Статистика"
+
+msgid "Logout"
+msgstr "Выйти"
+
+msgid "Login"
+msgstr "Войти"
+
+msgid "Change language"
+msgstr "Изменить язык"
+
+# recording_list.html
+msgid "My Files"
+msgstr "Мои файлы"
+
+msgid "Shared with Me"
+msgstr "Поделились со мной"
+
+msgid "Instrument"
+msgstr "Инструмент"
+
+msgid "Any"
+msgstr "Любой"
+
+msgid "Tag"
+msgstr "Тег"
+
+msgid "Idea Stage"
+msgstr "Стадия идеи"
+
+msgid "Type"
+msgstr "Тип"
+
+msgid "Notes Search"
+msgstr "Поиск по заметкам"
+
+msgid "Apply Filters"
+msgstr "Применить фильтры"
+
+msgid "shared by %(username)s"
+msgstr "поделился %(username)s"
+
+msgid "View / Edit"
+msgstr "Просмотр / Изменить"
+
+msgid "No recordings have been shared with you yet."
+msgstr "С вами ещё никто не поделился записями."
+
+msgid "No recordings yet. Start with Upload."
+msgstr "Записей пока нет. Начните с загрузки."
+
+msgid "Play / Pause"
+msgstr "Играть / Пауза"
+
+# recording_upload.html
+msgid "Batch Upload Recordings"
+msgstr "Загрузить записи"
+
+msgid "Please fix the highlighted fields and try again."
+msgstr "Исправьте выделенные поля и попробуйте снова."
+
+msgid "Files"
+msgstr "Файлы"
+
+msgid "Rating"
+msgstr "Оценка"
+
+msgid "Location"
+msgstr "Место"
+
+msgid "Mood"
+msgstr "Настроение"
+
+msgid "Tags"
+msgstr "Теги"
+
+msgid "Notes"
+msgstr "Заметки"
+
+msgid "Save Recordings"
+msgstr "Сохранить записи"
+
+# recording_detail.html
+msgid "shared by <strong>%(username)s</strong>"
+msgstr "поделился <strong>%(username)s</strong>"
+
+msgid "← Back"
+msgstr "← Назад"
+
+msgid "Share"
+msgstr "Поделиться"
+
+msgid "Shared with"
+msgstr "Открыт доступ для"
+
+msgid "Not shared with anyone yet."
+msgstr "Ещё ни с кем не поделились."
+
+msgid "Manage sharing"
+msgstr "Управление доступом"
+
+msgid "Edit"
+msgstr "Редактировать"
+
+msgid "Please fix the errors below."
+msgstr "Исправьте ошибки ниже."
+
+msgid "BPM"
+msgstr "BPM"
+
+msgid "Key"
+msgstr "Тональность"
+
+msgid "Save Changes"
+msgstr "Сохранить изменения"
+
+msgid "Comments (%(count)s)"
+msgstr "Комментарии (%(count)s)"
+
+msgid "No comments yet."
+msgstr "Комментариев пока нет."
+
+msgid "Add Comment"
+msgstr "Добавить комментарий"
+
+# stats.html
+msgid "Statistics"
+msgstr "Статистика"
+
+msgid "Total time recorded"
+msgstr "Общее время записей"
+
+msgid "By Type"
+msgstr "По типу"
+
+msgid "By Instrument"
+msgstr "По инструменту"
+
+msgid "(no instrument)"
+msgstr "(без инструмента)"
+
+msgid "No recordings yet."
+msgstr "Записей пока нет."
+
+msgid "Recent Activity"
+msgstr "Недавняя активность"
+
+msgid "No activity yet."
+msgstr "Активности пока нет."
+
+msgid "rec."
+msgstr "зап."
+
+msgid "%(count)s recording"
+msgid_plural "%(count)s recordings"
+msgstr[0] "%(count)s запись"
+msgstr[1] "%(count)s записи"
+msgstr[2] "%(count)s записей"
+
+# recording_share.html
+msgid "Share Recording"
+msgstr "Поделиться записью"
+
+msgid "Select musicians to share with"
+msgstr "Выберите музыкантов для доступа"
+
+msgid "Shared"
+msgstr "Открыт доступ"
+
+msgid "Save"
+msgstr "Сохранить"
+
+msgid "Cancel"
+msgstr "Отмена"
+
+msgid "No other users found. Invite your musician friends to create accounts first."
+msgstr "Другие пользователи не найдены. Сначала пригласите друзей-музыкантов."
+
+# login.html
+msgid "Sign In"
+msgstr "Войти"
+
+msgid "Invalid username or password."
+msgstr "Неверное имя пользователя или пароль."
+
+msgid "Username"
+msgstr "Имя пользователя"
+
+msgid "Password"
+msgstr "Пароль"
+
+msgid "Got an invite? <a href=\"#\" style=\"color:var(--accent);\">Enter your invite link</a> to create an account."
+msgstr "Есть приглашение? <a href=\"#\" style=\"color:var(--accent);\">Перейдите по ссылке</a>, чтобы создать аккаунт."
+
+# register.html
+msgid "Invalid invite"
+msgstr "Недействительное приглашение"
+
+msgid "This invite link is not valid. Ask for a new one."
+msgstr "Эта ссылка-приглашение недействительна. Попросите новую."
+
+msgid "Invite already used"
+msgstr "Приглашение уже использовано"
+
+msgid "This invite has already been used to create an account."
+msgstr "Это приглашение уже использовалось для создания аккаунта."
+
+msgid "Already have an account?"
+msgstr "Уже есть аккаунт?"
+
+msgid "Sign in"
+msgstr "Войти"
+
+msgid "Create account"
+msgstr "Создать аккаунт"
+
+msgid "Invited by <strong>%(username)s</strong> · %(note)s"
+msgstr "Приглашён пользователем <strong>%(username)s</strong> · %(note)s"
+
+msgid "Confirm password"
+msgstr "Подтвердите пароль"
+
+# forms.py
+msgid "Select one or more recordings."
+msgstr "Выберите одну или несколько записей."
+
+msgid "Trim silence"
+msgstr "Обрезать тишину"
+
+msgid "Remove leading and trailing silence (requires ffmpeg)."
+msgstr "Убрать тишину в начале и конце (требуется ffmpeg)."
+
+msgid "Auto-describe"
+msgstr "Авто-описание"
+
+msgid "Use Suno AI to suggest notes, mood, and tags (requires USE_SUNO)."
+msgstr "Использовать Suno AI для автоматических заметок, настроения и тегов (требуется USE_SUNO)."
+
+msgid "This username is already taken."
+msgstr "Это имя пользователя уже занято."
+
+msgid "Passwords do not match."
+msgstr "Пароли не совпадают."
+
+msgid "What to try next, what didn't work, ideas..."
+msgstr "Что попробовать дальше, что не получилось, идеи..."
+
+msgid "Add a comment"
+msgstr "Добавить комментарий"
+
+# models.py — IdeaStage
+msgid "Raw"
+msgstr "Сырая"
+
+msgid "Promising"
+msgstr "Перспективная"
+
+msgid "Needs work"
+msgstr "Требует доработки"
+
+msgid "Developed"
+msgstr "Развитая"
+
+msgid "Archived"
+msgstr "В архиве"
+
+# models.py — RecordingType
+msgid "Practice"
+msgstr "Практика"
+
+msgid "Improvisation"
+msgstr "Импровизация"
+
+msgid "Composition"
+msgstr "Композиция"
+
+msgid "Jam Session"
+msgstr "Джем-сессия"
+
+msgid "Live Performance"
+msgstr "Живое выступление"
+
+msgid "Cover"
+msgstr "Кавер"
+
+msgid "Demo"
+msgstr "Демо"
+
+msgid "Imported"
+msgstr "Импортировано"
+
+# models.py — SunoStatus
+msgid "Pending"
+msgstr "Ожидание"
+
+msgid "Processing"
+msgstr "Обработка"
+
+msgid "Done"
+msgstr "Готово"
+
+msgid "Failed"
+msgstr "Ошибка"
+
+msgid "Skipped"
+msgstr "Пропущено"
+
+# models.py — Instrument.Family
+msgid "String"
+msgstr "Струнные"
+
+msgid "Keys"
+msgstr "Клавишные"
+
+msgid "Synth"
+msgstr "Синтезатор"
+
+msgid "Wind"
+msgstr "Духовые"
+
+msgid "Brass"
+msgstr "Медные духовые"
+
+msgid "Percussion"
+msgstr "Ударные"
+
+msgid "Voice"
+msgstr "Голос"
+
+msgid "Electronic"
+msgstr "Электронные"
+
+msgid "Field Recording"
+msgstr "Полевая запись"
+
+msgid "Other"
+msgstr "Другое"
+
+# models.py — Tag.Category
+msgid "Technique"
+msgstr "Техника"
+
+msgid "Rhythm"
+msgstr "Ритм"
+
+msgid "Genre"
+msgstr "Жанр"
+
+msgid "Experiment"
+msgstr "Эксперимент"
+
+msgid "Environment"
+msgstr "Среда"

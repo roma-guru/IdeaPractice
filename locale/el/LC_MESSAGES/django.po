@@ -1,0 +1,373 @@
+# Greek translations for Audio Practice Journal
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+# base.html
+msgid "Audio Practice Journal"
+msgstr "Ημερολόγιο πρακτικής"
+
+msgid "Audio Practice & Idea Journal"
+msgstr "Ημερολόγιο πρακτικής και ιδεών"
+
+msgid "Recordings"
+msgstr "Ηχογραφήσεις"
+
+msgid "Upload"
+msgstr "Μεταφόρτωση"
+
+msgid "Stats"
+msgstr "Στατιστικά"
+
+msgid "Logout"
+msgstr "Αποσύνδεση"
+
+msgid "Login"
+msgstr "Σύνδεση"
+
+msgid "Change language"
+msgstr "Αλλαγή γλώσσας"
+
+# recording_list.html
+msgid "My Files"
+msgstr "Τα αρχεία μου"
+
+msgid "Shared with Me"
+msgstr "Κοινόχρηστα μαζί μου"
+
+msgid "Instrument"
+msgstr "Όργανο"
+
+msgid "Any"
+msgstr "Οποιοδήποτε"
+
+msgid "Tag"
+msgstr "Ετικέτα"
+
+msgid "Idea Stage"
+msgstr "Στάδιο ιδέας"
+
+msgid "Type"
+msgstr "Τύπος"
+
+msgid "Notes Search"
+msgstr "Αναζήτηση σημειώσεων"
+
+msgid "Apply Filters"
+msgstr "Εφαρμογή φίλτρων"
+
+msgid "shared by %(username)s"
+msgstr "κοινόχρηστο από %(username)s"
+
+msgid "View / Edit"
+msgstr "Προβολή / Επεξεργασία"
+
+msgid "No recordings have been shared with you yet."
+msgstr "Δεν έχουν κοινοποιηθεί ηχογραφήσεις μαζί σας ακόμα."
+
+msgid "No recordings yet. Start with Upload."
+msgstr "Δεν υπάρχουν ηχογραφήσεις. Ξεκινήστε με μεταφόρτωση."
+
+msgid "Play / Pause"
+msgstr "Αναπαραγωγή / Παύση"
+
+# recording_upload.html
+msgid "Batch Upload Recordings"
+msgstr "Μαζική μεταφόρτωση ηχογραφήσεων"
+
+msgid "Please fix the highlighted fields and try again."
+msgstr "Διορθώστε τα επισημασμένα πεδία και δοκιμάστε ξανά."
+
+msgid "Files"
+msgstr "Αρχεία"
+
+msgid "Rating"
+msgstr "Βαθμολογία"
+
+msgid "Location"
+msgstr "Τοποθεσία"
+
+msgid "Mood"
+msgstr "Διάθεση"
+
+msgid "Tags"
+msgstr "Ετικέτες"
+
+msgid "Notes"
+msgstr "Σημειώσεις"
+
+msgid "Save Recordings"
+msgstr "Αποθήκευση ηχογραφήσεων"
+
+# recording_detail.html
+msgid "shared by <strong>%(username)s</strong>"
+msgstr "κοινόχρηστο από <strong>%(username)s</strong>"
+
+msgid "← Back"
+msgstr "← Πίσω"
+
+msgid "Share"
+msgstr "Κοινοποίηση"
+
+msgid "Shared with"
+msgstr "Κοινόχρηστο με"
+
+msgid "Not shared with anyone yet."
+msgstr "Δεν έχει κοινοποιηθεί ακόμα."
+
+msgid "Manage sharing"
+msgstr "Διαχείριση κοινοποίησης"
+
+msgid "Edit"
+msgstr "Επεξεργασία"
+
+msgid "Please fix the errors below."
+msgstr "Διορθώστε τα σφάλματα παρακάτω."
+
+msgid "BPM"
+msgstr "BPM"
+
+msgid "Key"
+msgstr "Τονικότητα"
+
+msgid "Save Changes"
+msgstr "Αποθήκευση αλλαγών"
+
+msgid "Comments (%(count)s)"
+msgstr "Σχόλια (%(count)s)"
+
+msgid "No comments yet."
+msgstr "Δεν υπάρχουν σχόλια ακόμα."
+
+msgid "Add Comment"
+msgstr "Προσθήκη σχολίου"
+
+# stats.html
+msgid "Statistics"
+msgstr "Στατιστικά"
+
+msgid "Total time recorded"
+msgstr "Συνολικός χρόνος ηχογράφησης"
+
+msgid "By Type"
+msgstr "Ανά τύπο"
+
+msgid "By Instrument"
+msgstr "Ανά όργανο"
+
+msgid "(no instrument)"
+msgstr "(χωρίς όργανο)"
+
+msgid "No recordings yet."
+msgstr "Δεν υπάρχουν ηχογραφήσεις ακόμα."
+
+msgid "Recent Activity"
+msgstr "Πρόσφατη δραστηριότητα"
+
+msgid "No activity yet."
+msgstr "Δεν υπάρχει δραστηριότητα ακόμα."
+
+msgid "rec."
+msgstr "ηχ."
+
+msgid "%(count)s recording"
+msgid_plural "%(count)s recordings"
+msgstr[0] "%(count)s ηχογράφηση"
+msgstr[1] "%(count)s ηχογραφήσεις"
+
+# recording_share.html
+msgid "Share Recording"
+msgstr "Κοινοποίηση ηχογράφησης"
+
+msgid "Select musicians to share with"
+msgstr "Επιλέξτε μουσικούς για κοινοποίηση"
+
+msgid "Shared"
+msgstr "Κοινόχρηστο"
+
+msgid "Save"
+msgstr "Αποθήκευση"
+
+msgid "Cancel"
+msgstr "Ακύρωση"
+
+msgid "No other users found. Invite your musician friends to create accounts first."
+msgstr "Δεν βρέθηκαν άλλοι χρήστες. Προσκαλέστε πρώτα τους μουσικούς φίλους σας."
+
+# login.html
+msgid "Sign In"
+msgstr "Σύνδεση"
+
+msgid "Invalid username or password."
+msgstr "Μη έγκυρο όνομα χρήστη ή κωδικός."
+
+msgid "Username"
+msgstr "Όνομα χρήστη"
+
+msgid "Password"
+msgstr "Κωδικός"
+
+msgid "Got an invite? <a href=\"#\" style=\"color:var(--accent);\">Enter your invite link</a> to create an account."
+msgstr "Έχετε πρόσκληση; <a href=\"#\" style=\"color:var(--accent);\">Χρησιμοποιήστε τον σύνδεσμο πρόσκλησης</a> για να δημιουργήσετε λογαριασμό."
+
+# register.html
+msgid "Invalid invite"
+msgstr "Μη έγκυρη πρόσκληση"
+
+msgid "This invite link is not valid. Ask for a new one."
+msgstr "Αυτός ο σύνδεσμος πρόσκλησης δεν είναι έγκυρος. Ζητήστε νέο."
+
+msgid "Invite already used"
+msgstr "Η πρόσκληση χρησιμοποιήθηκε ήδη"
+
+msgid "This invite has already been used to create an account."
+msgstr "Αυτή η πρόσκληση έχει ήδη χρησιμοποιηθεί για τη δημιουργία λογαριασμού."
+
+msgid "Already have an account?"
+msgstr "Έχετε ήδη λογαριασμό;"
+
+msgid "Sign in"
+msgstr "Συνδεθείτε"
+
+msgid "Create account"
+msgstr "Δημιουργία λογαριασμού"
+
+msgid "Invited by <strong>%(username)s</strong> · %(note)s"
+msgstr "Προσκεκλημένος από <strong>%(username)s</strong> · %(note)s"
+
+msgid "Confirm password"
+msgstr "Επιβεβαίωση κωδικού"
+
+# forms.py
+msgid "Select one or more recordings."
+msgstr "Επιλέξτε μία ή περισσότερες ηχογραφήσεις."
+
+msgid "Trim silence"
+msgstr "Κόψιμο σιωπής"
+
+msgid "Remove leading and trailing silence (requires ffmpeg)."
+msgstr "Αφαίρεση σιωπής στην αρχή και στο τέλος (απαιτεί ffmpeg)."
+
+msgid "Auto-describe"
+msgstr "Αυτόματη περιγραφή"
+
+msgid "Use Suno AI to suggest notes, mood, and tags (requires USE_SUNO)."
+msgstr "Χρήση Suno AI για προτάσεις σημειώσεων, διάθεσης και ετικετών (απαιτεί USE_SUNO)."
+
+msgid "This username is already taken."
+msgstr "Αυτό το όνομα χρήστη χρησιμοποιείται ήδη."
+
+msgid "Passwords do not match."
+msgstr "Οι κωδικοί δεν ταιριάζουν."
+
+msgid "What to try next, what didn't work, ideas..."
+msgstr "Τι να δοκιμάσετε στη συνέχεια, τι δεν λειτούργησε, ιδέες..."
+
+msgid "Add a comment"
+msgstr "Προσθήκη σχολίου"
+
+# models.py — IdeaStage
+msgid "Raw"
+msgstr "Ακατέργαστη"
+
+msgid "Promising"
+msgstr "Υποσχόμενη"
+
+msgid "Needs work"
+msgstr "Χρειάζεται δουλειά"
+
+msgid "Developed"
+msgstr "Αναπτυγμένη"
+
+msgid "Archived"
+msgstr "Αρχειοθετημένη"
+
+# models.py — RecordingType
+msgid "Practice"
+msgstr "Εξάσκηση"
+
+msgid "Improvisation"
+msgstr "Αυτοσχεδιασμός"
+
+msgid "Composition"
+msgstr "Σύνθεση"
+
+msgid "Jam Session"
+msgstr "Jam Session"
+
+msgid "Live Performance"
+msgstr "Ζωντανή εμφάνιση"
+
+msgid "Cover"
+msgstr "Διασκευή"
+
+msgid "Demo"
+msgstr "Demo"
+
+msgid "Imported"
+msgstr "Εισαγμένη"
+
+# models.py — SunoStatus
+msgid "Pending"
+msgstr "Αναμονή"
+
+msgid "Processing"
+msgstr "Επεξεργασία"
+
+msgid "Done"
+msgstr "Ολοκληρώθηκε"
+
+msgid "Failed"
+msgstr "Απέτυχε"
+
+msgid "Skipped"
+msgstr "Παραλείφθηκε"
+
+# models.py — Instrument.Family
+msgid "String"
+msgstr "Έγχορδα"
+
+msgid "Keys"
+msgstr "Πλήκτρα"
+
+msgid "Synth"
+msgstr "Συνθεσάιζερ"
+
+msgid "Wind"
+msgstr "Πνευστά"
+
+msgid "Brass"
+msgstr "Χάλκινα πνευστά"
+
+msgid "Percussion"
+msgstr "Κρουστά"
+
+msgid "Voice"
+msgstr "Φωνή"
+
+msgid "Electronic"
+msgstr "Ηλεκτρονικά"
+
+msgid "Field Recording"
+msgstr "Ηχογράφηση πεδίου"
+
+msgid "Other"
+msgstr "Άλλο"
+
+# models.py — Tag.Category
+msgid "Technique"
+msgstr "Τεχνική"
+
+msgid "Rhythm"
+msgstr "Ρυθμός"
+
+msgid "Genre"
+msgstr "Είδος"
+
+msgid "Experiment"
+msgstr "Πείραμα"
+
+msgid "Environment"
+msgstr "Περιβάλλον"
