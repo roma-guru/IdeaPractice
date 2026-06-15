@@ -61,6 +61,13 @@ class Recording(models.Model):
         DEMO = "demo", "Demo"
         IMPORTED = "imported", "Imported"
 
+    class SunoStatus(models.TextChoices):
+        PENDING = "pending", "Pending"
+        PROCESSING = "processing", "Processing"
+        DONE = "done", "Done"
+        FAILED = "failed", "Failed"
+        SKIPPED = "skipped", "Skipped"
+
     file = models.FileField(upload_to="recordings/%Y/%m/")
     created_at = models.DateTimeField(auto_now_add=True)
     duration = models.DurationField(null=True, blank=True)
@@ -89,6 +96,10 @@ class Recording(models.Model):
     idea_stage = models.CharField(max_length=20, choices=IdeaStage.choices, default=IdeaStage.RAW)
     rating = models.PositiveSmallIntegerField(null=True, blank=True)
     tags = models.ManyToManyField(Tag, blank=True, related_name="recordings")
+    suno_status = models.CharField(
+        max_length=16, choices=SunoStatus.choices, null=True, blank=True
+    )
+    suno_raw = models.JSONField(null=True, blank=True)
 
     if TYPE_CHECKING:
         shares: Manager[SharedRecording]

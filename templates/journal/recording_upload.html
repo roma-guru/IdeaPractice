@@ -50,6 +50,15 @@
                 <span class="meta"> — {{ form.trim_silence.help_text }}</span>
             </span>
         </label>
+        {% if suno_enabled %}
+        <label class="toggle-row" style="margin-top:8px;">
+            {{ form.auto_describe }}
+            <span>
+                {{ form.auto_describe.label }}
+                <span class="meta"> — {{ form.auto_describe.help_text }}</span>
+            </span>
+        </label>
+        {% endif %}
         <div style="margin-top:10px;">
             <label for="{{ form.notes.id_for_label }}">Notes</label>
             {{ form.notes }}

@@ -8,6 +8,7 @@ import tempfile
 from datetime import timedelta
 from pathlib import Path
 
+from django.conf import settings
 from django.contrib.auth import get_user_model, login
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
@@ -21,6 +22,7 @@ from django.views.decorators.http import require_http_methods
 
 from .forms import CommentForm, RecordingBatchUploadForm, RecordingEditForm, RegisterForm
 from .models import Instrument, Invite, Recording, SharedRecording, Tag
+from .tasks import auto_describe_recording
 
 logger = logging.getLogger(__name__)
 
@@ -146,6 +148,7 @@ def recording_upload(request: HttpRequest) -> HttpResponse:
                 "notes": form.cleaned_data["notes"],
             }
 
+            do_describe = form.cleaned_data.get("auto_describe", False)
             for uploaded_file in uploaded_files:
                 if do_trim:
                     uploaded_file = _trim_silence(uploaded_file)
@@ -155,11 +158,19 @@ def recording_upload(request: HttpRequest) -> HttpResponse:
                 )
                 if tags:
                     recording.tags.set(tags)
+                if settings.USE_SUNO and do_describe:
+                    auto_describe_recording.delay(recording.pk)
+                    recording.suno_status = Recording.SunoStatus.PENDING
+                    recording.save(update_fields=["suno_status"])
             return redirect("recording-list")
     else:
         form = RecordingBatchUploadForm()
 
-    return render(request, "journal/recording_upload.html", {"form": form})
+    return render(
+        request,
+        "journal/recording_upload.html",
+        {"form": form, "suno_enabled": settings.USE_SUNO},
+    )
 
 
 @login_required

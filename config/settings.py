@@ -106,6 +106,19 @@ else:
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# ── Suno auto-description ──────────────────────────────────────────────────
+USE_SUNO = os.getenv("USE_SUNO", "false").lower() in {"1", "true", "yes", "on"}
+if USE_SUNO:
+    SUNO_API_KEY = os.getenv("SUNO_API_KEY", "")
+    SUNO_API_URL = os.getenv("SUNO_API_URL", "")  # full endpoint URL
+
+# ── Celery ─────────────────────────────────────────────────────────────────
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
+CELERY_TASK_SERIALIZER = "json"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_TRACK_STARTED = True
+
 LOGIN_URL = "/auth/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/auth/login/"

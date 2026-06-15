@@ -47,6 +47,11 @@ class RecordingBatchUploadForm(forms.Form):
         label="Trim silence",
         help_text="Remove leading and trailing silence (requires ffmpeg).",
     )
+    auto_describe = forms.BooleanField(
+        required=False,
+        label="Auto-describe",
+        help_text="Use Suno AI to suggest notes, mood, and tags (requires USE_SUNO).",
+    )
     notes = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 4}))
 
 
