@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Compile locale/*.po files to *.mo without requiring GNU gettext (uses polib)."""
 import pathlib
+
 import polib
 
 root = pathlib.Path(__file__).parent

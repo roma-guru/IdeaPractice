@@ -49,7 +49,9 @@ class Tag(models.Model):
         ENVIRONMENT = "environment", _("Environment")
 
     name = models.CharField(max_length=120, unique=True)
-    category = models.CharField(max_length=32, choices=Category.choices, default=Category.EXPERIMENT)
+    category = models.CharField(
+        max_length=32, choices=Category.choices, default=Category.EXPERIMENT
+    )
 
     class Meta:
         ordering = ["name"]

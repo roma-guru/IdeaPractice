@@ -21,7 +21,9 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(Recording)
 class RecordingAdmin(admin.ModelAdmin):
-    list_display = ("id", "file", "instrument", "recording_type", "idea_stage", "suno_status", "created_at")
+    list_display = (
+        "id", "file", "instrument", "recording_type", "idea_stage", "suno_status", "created_at"
+    )
     list_filter = ("recording_type", "idea_stage", "instrument", "tags", "suno_status")
     search_fields = ("notes", "location", "mood", "file")
     autocomplete_fields = ("instrument", "tags")

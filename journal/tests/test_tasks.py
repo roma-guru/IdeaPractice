@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from django.contrib.auth.models import User
@@ -19,7 +19,10 @@ def _wav() -> SimpleUploadedFile:
 
 
 def _recording(**kwargs: object) -> Recording:
-    owner = User.objects.create_user(username="owner_t", password="x") if "owner" not in kwargs else kwargs.pop("owner")  # type: ignore[assignment]
+    if "owner" not in kwargs:
+        owner = User.objects.create_user(username="owner_t", password="x")
+    else:
+        owner = kwargs.pop("owner")  # type: ignore[assignment]
     return Recording.objects.create(file=_wav(), owner=owner, **kwargs)  # type: ignore[arg-type]
 
 

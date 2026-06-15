@@ -39,7 +39,9 @@ class RecordingBatchUploadForm(forms.Form):
         choices=Recording.RecordingType.choices,
         initial=Recording.RecordingType.PRACTICE,
     )
-    idea_stage = forms.ChoiceField(choices=Recording.IdeaStage.choices, initial=Recording.IdeaStage.RAW)
+    idea_stage = forms.ChoiceField(
+        choices=Recording.IdeaStage.choices, initial=Recording.IdeaStage.RAW
+    )
     location = forms.CharField(max_length=200, required=False)
     mood = forms.CharField(max_length=120, required=False)
     rating = forms.IntegerField(min_value=0, max_value=10, required=False)
