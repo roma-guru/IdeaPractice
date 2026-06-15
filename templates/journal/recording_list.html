@@ -85,7 +85,9 @@
         </div>
         {% if recording.file %}
             <div class="wf-mini-player">
-                <div class="wf-mini-wave wf-loading" data-url="{{ recording.file.url }}"></div>
+                <div class="wf-mini-wave wf-loading"
+             data-url="{{ recording.file.url }}"
+             data-peaks-url="{% url 'recording-peaks' recording.pk %}"></div>
                 <div class="wf-mini-controls">
                     <button class="wf-mini-play" aria-label="{% trans "Play / Pause" %}">
                         <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor">
@@ -138,16 +140,28 @@ async function initMini(playerEl) {
     const iPlay  = btn.querySelector('.wf-icon-play')
     const iPause = btn.querySelector('.wf-icon-pause')
 
+    // Fetch pre-computed peaks from server (avoids MP3 Web Audio decode issues)
+    let peaks, duration
+    try {
+        const resp = await fetch(waveEl.dataset.peaksUrl)
+        if (resp.ok) {
+            const data = await resp.json()
+            if (data.peaks) { peaks = [new Float32Array(data.peaks)]; duration = data.duration || undefined }
+        }
+    } catch (_) { /* fall back to url-only decode */ }
+
     const ws = WS.create({
         container:     waveEl,
         url:           waveEl.dataset.url,
+        peaks:         peaks,
+        duration:      duration,
         waveColor:     '#a8c4ee',
         progressColor: '#2f6fed',
         height:        40,
         barWidth:      2,
         barGap:        1,
         barRadius:     2,
-        normalize:     true,
+        normalize:     !peaks,
     })
 
     ws.on('ready',      dur => { waveEl.classList.remove('wf-loading'); timeEl.textContent = fmt(dur) })

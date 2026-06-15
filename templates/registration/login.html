@@ -22,8 +22,54 @@
         {% endif %}
         <button class="button" type="submit">{% trans "Login" %}</button>
     </form>
+
     <p style="margin-top:14px;font-size:14px;color:var(--muted);">
-        {% blocktrans %}Got an invite? <a href="#" style="color:var(--accent);">Enter your invite link</a> to create an account.{% endblocktrans %}
+        {% trans "Got an invite?" %}
+        <button type="button" id="invite-toggle"
+                style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:14px;padding:0;">
+            {% trans "Enter your invite code" %}
+        </button>
+    </p>
+    <div id="invite-box" hidden style="margin-top:8px;display:flex;gap:8px;">
+        <input id="invite-code" type="text" placeholder="{% trans "Paste invite code…" %}"
+               style="flex:1;border:1px solid var(--line);border-radius:8px;padding:8px;font-size:14px;">
+        <button type="button" id="invite-go" class="button">{% trans "Go" %}</button>
+    </div>
+    <p id="invite-error" hidden style="color:#b3261e;font-size:13px;margin-top:6px;">
+        {% trans "Please enter an invite code." %}
     </p>
 </section>
+
+{% block extra_js %}
+<script>
+(function(){
+    const toggle = document.getElementById('invite-toggle')
+    const box    = document.getElementById('invite-box')
+    const input  = document.getElementById('invite-code')
+    const goBtn  = document.getElementById('invite-go')
+    const err    = document.getElementById('invite-error')
+
+    toggle.addEventListener('click', function(){
+        box.hidden = !box.hidden
+        if (!box.hidden) input.focus()
+    })
+
+    function navigate(){
+        const code = input.value.trim()
+        if (!code){ err.hidden = false; return }
+        err.hidden = true
+        // Accept either a bare code or a full URL ending in the code
+        const match = code.match(/([A-Za-z0-9_-]{10,})$/)
+        if (match) {
+            window.location.href = '/register/' + match[1] + '/'
+        } else {
+            window.location.href = '/register/' + code + '/'
+        }
+    }
+
+    goBtn.addEventListener('click', navigate)
+    input.addEventListener('keydown', function(e){ if (e.key === 'Enter') navigate() })
+})()
+</script>
+{% endblock %}
 {% endblock %}

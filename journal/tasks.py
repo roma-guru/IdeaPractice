@@ -20,6 +20,23 @@ _KS_MINOR = np.array([6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69
 _NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
 
+def _compute_peaks(y: np.ndarray, n_points: int = 1000) -> list[float]:
+    """Downsample audio samples to n_points waveform peaks in [0, 1] for display."""
+    samples = len(y)
+    if samples == 0:
+        return [0.0] * n_points
+    step = max(1, samples // n_points)
+    peaks = [
+        float(np.max(np.abs(y[i * step : min((i + 1) * step, samples)])))
+        for i in range(n_points)
+        if i * step < samples
+    ]
+    max_val = max(peaks) if peaks else 1.0
+    if max_val > 0:
+        peaks = [round(p / max_val, 4) for p in peaks]
+    return peaks
+
+
 def _detect_key(y: np.ndarray, sr: int | float) -> str:
     import librosa
 
@@ -60,11 +77,14 @@ def analyse_recording(self, recording_id: int) -> None:  # type: ignore[override
 
         update_fields: list[str] = []
         if not recording.bpm:
-            recording.bpm = round(float(tempo), 1)
+            recording.bpm = round(float(np.asarray(tempo).flat[0]), 1)
             update_fields.append("bpm")
         if not recording.key:
             recording.key = key
             update_fields.append("key")
+        if not recording.peaks:
+            recording.peaks = _compute_peaks(y)
+            update_fields.append("peaks")
         if update_fields:
             recording.save(update_fields=update_fields)
 

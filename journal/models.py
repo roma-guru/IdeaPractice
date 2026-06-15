@@ -119,6 +119,7 @@ class Recording(models.Model):
         max_length=16, choices=SunoStatus.choices, null=True, blank=True
     )
     suno_raw = models.JSONField(null=True, blank=True)
+    peaks = models.JSONField(null=True, blank=True)  # downsampled waveform for display
 
     if TYPE_CHECKING:
         shares: Manager[SharedRecording]

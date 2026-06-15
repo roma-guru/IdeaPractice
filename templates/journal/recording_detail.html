@@ -36,7 +36,10 @@
     </div>
     {% if recording.file %}
     <div class="waveform-player">
-        <div class="waveform-wave wf-loading" id="wf-wave" data-url="{{ recording.file.url }}"></div>
+        <div class="waveform-wave wf-loading" id="wf-wave"
+             data-url="{{ recording.file.url }}"
+             {% if peaks_json %}data-peaks="{{ peaks_json }}"{% endif %}
+             {% if duration_s %}data-duration="{{ duration_s }}"{% endif %}></div>
         <div class="waveform-controls">
             <button class="wf-play-btn" id="wf-play" aria-label="{% trans "Play / Pause" %}">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
@@ -173,16 +176,22 @@ const iconPause= playBtn.querySelector('.wf-icon-pause')
 const elCurrent= document.getElementById('wf-current')
 const elTotal  = document.getElementById('wf-total')
 
+const peaksRaw  = waveEl.dataset.peaks
+const durationS = waveEl.dataset.duration ? parseFloat(waveEl.dataset.duration) : undefined
+const peaks     = peaksRaw ? [new Float32Array(JSON.parse(peaksRaw))] : undefined
+
 const ws = WaveSurfer.create({
     container:     waveEl,
     url:           waveEl.dataset.url,
+    peaks:         peaks,
+    duration:      durationS,
     waveColor:     '#a8c4ee',
     progressColor: '#2f6fed',
     height:        80,
     barWidth:      3,
     barGap:        1,
     barRadius:     3,
-    normalize:     true,
+    normalize:     !peaks,  // only normalize if we have raw decoded data
 })
 
 ws.on('ready',      dur => { waveEl.classList.remove('wf-loading'); elTotal.textContent = fmt(dur) })

@@ -15,7 +15,7 @@ from django.core.exceptions import PermissionDenied
 from django.core.files.uploadedfile import InMemoryUploadedFile, UploadedFile
 from django.db.models import Count, Q, QuerySet, Sum
 from django.db.models.functions import TruncDate
-from django.http import HttpRequest, HttpResponse, QueryDict
+from django.http import HttpRequest, HttpResponse, JsonResponse, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
@@ -244,6 +244,8 @@ def recording_detail(request: HttpRequest, pk: int) -> HttpResponse:
         list(recording.shares.select_related("shared_with").all()) if is_owner else []
     )
 
+    import json
+
     context = {
         "recording": recording,
         "edit_form": edit_form,
@@ -251,8 +253,24 @@ def recording_detail(request: HttpRequest, pk: int) -> HttpResponse:
         "comments": recording.comments.select_related("author").all(),
         "is_owner": is_owner,
         "shared_with_users": shared_with_users,
+        "peaks_json": json.dumps(recording.peaks) if recording.peaks else None,
+        "duration_s": (
+            recording.duration.total_seconds() if recording.duration else None
+        ),
     }
     return render(request, "journal/recording_detail.html", context)
+
+
+@login_required
+def recording_peaks(request: HttpRequest, pk: int) -> JsonResponse:
+    """Return pre-computed waveform peaks for a recording (used by list-page player)."""
+    recording = get_object_or_404(Recording, pk=pk)
+    is_owner = recording.owner == request.user or recording.owner is None
+    has_access = is_owner or recording.shares.filter(shared_with=request.user).exists()
+    if not has_access:
+        raise PermissionDenied
+    duration = recording.duration.total_seconds() if recording.duration else None
+    return JsonResponse({"peaks": recording.peaks, "duration": duration})
 
 
 @require_http_methods(["GET", "POST"])
