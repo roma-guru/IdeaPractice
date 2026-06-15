@@ -16,3 +16,9 @@ wheels/
 # Pytest
 coverage.xml
 .coverage
+
+# Uploads
+/media
+
+# AI
+.claude
