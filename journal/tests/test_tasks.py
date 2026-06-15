@@ -9,7 +9,7 @@ from django.test import Client, override_settings
 from django.urls import reverse
 
 from journal.models import Recording, Tag
-from journal.tasks import auto_describe_recording
+from journal.tasks import analyse_recording, auto_describe_recording
 
 pytestmark = pytest.mark.django_db
 
@@ -44,7 +44,10 @@ def test_upload_with_auto_describe_sets_pending(client: Client) -> None:
     user = User.objects.create_user(username="uploader", password="pw")
     client.force_login(user)
 
-    with patch("journal.views.auto_describe_recording") as mock_task:
+    with (
+        patch("journal.views.analyse_recording"),
+        patch("journal.views.auto_describe_recording") as mock_suno,
+    ):
         client.post(
             reverse("recording-upload"),
             data={
@@ -54,7 +57,7 @@ def test_upload_with_auto_describe_sets_pending(client: Client) -> None:
                 "auto_describe": "on",
             },
         )
-        assert mock_task.delay.call_count == 1
+        assert mock_suno.delay.call_count == 1
 
     rec = Recording.objects.get(owner=user)
     assert rec.suno_status == Recording.SunoStatus.PENDING
@@ -65,7 +68,10 @@ def test_upload_without_flag_does_not_enqueue(client: Client) -> None:
     user = User.objects.create_user(username="uploader2", password="pw")
     client.force_login(user)
 
-    with patch("journal.views.auto_describe_recording") as mock_task:
+    with (
+        patch("journal.views.analyse_recording"),
+        patch("journal.views.auto_describe_recording") as mock_suno,
+    ):
         client.post(
             reverse("recording-upload"),
             data={
@@ -75,7 +81,7 @@ def test_upload_without_flag_does_not_enqueue(client: Client) -> None:
                 "auto_describe": "on",
             },
         )
-        mock_task.delay.assert_not_called()
+        mock_suno.delay.assert_not_called()
 
     rec = Recording.objects.get(owner=user)
     assert rec.suno_status is None
@@ -172,3 +178,88 @@ def test_upload_form_hides_auto_describe_when_suno_disabled(client: Client) -> N
     assert response.status_code == 200
     assert response.context["suno_enabled"] is False
     assert b"auto_describe" not in response.content
+
+
+# ── analyse_recording task ─────────────────────────────────────────────────
+
+def _make_owner(name: str = "owner_a") -> User:
+    return User.objects.create_user(username=name, password="x")
+
+
+def test_analyse_sets_bpm_and_key() -> None:
+    import numpy as np
+
+    owner = _make_owner("analyse1")
+    rec = Recording.objects.create(file=_wav(), owner=owner)
+
+    fake_y = np.zeros(22050)
+    with (
+        patch("journal.tasks.librosa.load", return_value=(fake_y, 22050)),
+        patch("journal.tasks.librosa.beat.beat_track", return_value=(np.float64(120.0), None)),
+        patch("journal.tasks._detect_key", return_value="A minor"),
+    ):
+        analyse_recording(rec.pk)
+
+    rec.refresh_from_db()
+    assert rec.bpm == 120.0
+    assert rec.key == "A minor"
+
+
+def test_analyse_does_not_overwrite_existing_bpm_and_key() -> None:
+    import numpy as np
+
+    owner = _make_owner("analyse2")
+    rec = Recording.objects.create(file=_wav(), owner=owner, bpm=95.0, key="G major")
+
+    fake_y = np.zeros(22050)
+    with (
+        patch("journal.tasks.librosa.load", return_value=(fake_y, 22050)),
+        patch("journal.tasks.librosa.beat.beat_track", return_value=(np.float64(120.0), None)),
+        patch("journal.tasks._detect_key", return_value="A minor"),
+    ):
+        analyse_recording(rec.pk)
+
+    rec.refresh_from_db()
+    assert rec.bpm == 95.0   # unchanged
+    assert rec.key == "G major"  # unchanged
+
+
+def test_analyse_is_noop_for_missing_recording() -> None:
+    analyse_recording(99999)  # must not raise
+
+
+def test_upload_always_enqueues_analyse(client: Client) -> None:
+    user = User.objects.create_user(username="enqueue_check", password="pw")
+    client.force_login(user)
+
+    with patch("journal.views.analyse_recording") as mock_analyse:
+        client.post(
+            reverse("recording-upload"),
+            data={
+                "files": _wav(),
+                "recording_type": Recording.RecordingType.PRACTICE,
+                "idea_stage": Recording.IdeaStage.RAW,
+            },
+        )
+        assert mock_analyse.delay.call_count == 1
+
+
+def test_bpm_key_editable_via_detail_form(client: Client) -> None:
+    owner = User.objects.create_user(username="edit_bpm", password="pw")
+    rec = Recording.objects.create(file=_wav(), owner=owner)
+    client.force_login(owner)
+
+    response = client.post(
+        reverse("recording-detail", args=[rec.pk]),
+        data={
+            "action": "edit",
+            "recording_type": Recording.RecordingType.PRACTICE,
+            "idea_stage": Recording.IdeaStage.RAW,
+            "bpm": "128.0",
+            "key": "D minor",
+        },
+    )
+    assert response.status_code == 302
+    rec.refresh_from_db()
+    assert rec.bpm == 128.0
+    assert rec.key == "D minor"

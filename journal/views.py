@@ -22,7 +22,7 @@ from django.views.decorators.http import require_http_methods
 
 from .forms import CommentForm, RecordingBatchUploadForm, RecordingEditForm, RegisterForm
 from .models import Instrument, Invite, Recording, SharedRecording, Tag
-from .tasks import auto_describe_recording
+from .tasks import analyse_recording, auto_describe_recording
 
 logger = logging.getLogger(__name__)
 
@@ -158,6 +158,7 @@ def recording_upload(request: HttpRequest) -> HttpResponse:
                 )
                 if tags:
                     recording.tags.set(tags)
+                analyse_recording.delay(recording.pk)
                 if settings.USE_SUNO and do_describe:
                     auto_describe_recording.delay(recording.pk)
                     recording.suno_status = Recording.SunoStatus.PENDING

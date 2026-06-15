@@ -8,7 +8,8 @@ from .models import Comment, Instrument, Invite, Recording, SharedRecording, Tag
 @admin.register(Instrument)
 class InstrumentAdmin(admin.ModelAdmin):
     list_display = ("name", "family")
-    search_fields = ("name", "family")
+    list_filter = ("family",)
+    search_fields = ("name",)
 
 
 @admin.register(Tag)

@@ -13,8 +13,22 @@ def _invite_code() -> str:
 
 
 class Instrument(models.Model):
+    class Family(models.TextChoices):
+        STRING = "string", "String"
+        KEYS = "keys", "Keys"
+        SYNTH = "synth", "Synth"
+        WIND = "wind", "Wind"
+        BRASS = "brass", "Brass"
+        PERCUSSION = "percussion", "Percussion"
+        VOICE = "voice", "Voice"
+        ELECTRONIC = "electronic", "Electronic"
+        FIELD = "field", "Field Recording"
+        OTHER = "other", "Other"
+
     name = models.CharField(max_length=120, unique=True)
-    family = models.CharField(max_length=120, blank=True)
+    family = models.CharField(
+        max_length=32, choices=Family.choices, blank=True
+    )
     notes = models.TextField(blank=True)
 
     class Meta:
@@ -96,6 +110,8 @@ class Recording(models.Model):
     idea_stage = models.CharField(max_length=20, choices=IdeaStage.choices, default=IdeaStage.RAW)
     rating = models.PositiveSmallIntegerField(null=True, blank=True)
     tags = models.ManyToManyField(Tag, blank=True, related_name="recordings")
+    bpm = models.FloatField(null=True, blank=True)
+    key = models.CharField(max_length=16, blank=True)
     suno_status = models.CharField(
         max_length=16, choices=SunoStatus.choices, null=True, blank=True
     )

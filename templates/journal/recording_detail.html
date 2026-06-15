@@ -12,6 +12,8 @@
                 {% if recording.duration %} · {{ recording.duration|format_duration }}{% endif %}
                 · {{ recording.get_idea_stage_display }}
                 {% if recording.rating %} · ★ {{ recording.rating }}{% endif %}
+                {% if recording.bpm %} · {{ recording.bpm }} BPM{% endif %}
+                {% if recording.key %} · {{ recording.key }}{% endif %}
                 {% if recording.location %} · {{ recording.location }}{% endif %}
                 {% if recording.mood %} · {{ recording.mood }}{% endif %}
             </p>
@@ -105,6 +107,14 @@
             <div>
                 <label for="{{ edit_form.mood.id_for_label }}">Mood</label>
                 {{ edit_form.mood }}
+            </div>
+            <div>
+                <label for="{{ edit_form.bpm.id_for_label }}">BPM</label>
+                {{ edit_form.bpm }}
+            </div>
+            <div>
+                <label for="{{ edit_form.key.id_for_label }}">Key</label>
+                {{ edit_form.key }}
             </div>
         </div>
         <div class="panel" style="margin-top:10px;">

@@ -5,9 +5,14 @@ build/
 dist/
 wheels/
 *.egg-info
+.python-version
 
 # Virtual environments
 .venv
 
 # Sqlite
 *.sqlite3
+
+# Pytest
+coverage.xml
+.coverage

@@ -55,18 +55,26 @@ class RecordingBatchUploadForm(forms.Form):
     notes = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 4}))
 
 
+_KEY_CHOICES = [("", "—")] + [
+    (f"{note} {mode}", f"{note} {mode}")
+    for mode in ("major", "minor")
+    for note in ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+]
+
+
 class RecordingEditForm(forms.ModelForm):  # type: ignore[type-arg]
     tags = forms.ModelMultipleChoiceField(
         queryset=Tag.objects.all(),
         required=False,
         widget=forms.CheckboxSelectMultiple(),
     )
+    key = forms.ChoiceField(choices=_KEY_CHOICES, required=False)
 
     class Meta:
         model = Recording
         fields = [
             "instrument", "recording_type", "tags", "idea_stage",
-            "location", "mood", "rating", "notes",
+            "location", "mood", "rating", "bpm", "key", "notes",
         ]
         widgets = {"notes": forms.Textarea(attrs={"rows": 4})}
 
