@@ -8,7 +8,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client
 from django.urls import reverse
 
-from journal.models import Comment, Instrument, Recording, Tag
+from journal.models import Comment, Instrument, Recording, SharedRecording, Tag
 
 pytestmark = pytest.mark.django_db
 
@@ -265,3 +265,133 @@ def test_recording_list_filters_by_multiple_params(client: Client) -> None:
     assert response.status_code == 200
     recordings = list(response.context["recordings"])
     assert [r.pk for r in recordings] == [match.pk]
+
+
+# ---------------------------------------------------------------------------
+# Sharing
+# ---------------------------------------------------------------------------
+
+def _make_user(username: str) -> User:
+    return User.objects.create_user(username=username, password="secret123")
+
+
+def _wav(name: str = "rec.wav") -> SimpleUploadedFile:
+    return SimpleUploadedFile(name, b"RIFF....WAVE", content_type="audio/wav")
+
+
+def test_recording_detail_blocks_unshared_user(client: Client) -> None:
+    owner = _make_user("owner_x")
+    other = _make_user("other_x")
+    recording = Recording.objects.create(file=_wav(), owner=owner)
+
+    client.force_login(other)
+    response = client.get(reverse("recording-detail", args=[recording.pk]))
+    assert response.status_code == 403
+
+
+def test_recording_detail_allows_shared_user(client: Client) -> None:
+    owner = _make_user("owner_y")
+    other = _make_user("other_y")
+    recording = Recording.objects.create(file=_wav(), owner=owner)
+    SharedRecording.objects.create(recording=recording, shared_with=other, shared_by=owner)
+
+    client.force_login(other)
+    response = client.get(reverse("recording-detail", args=[recording.pk]))
+    assert response.status_code == 200
+    assert response.context["is_owner"] is False
+
+
+def test_shared_user_can_comment_but_not_edit(client: Client) -> None:
+    owner = _make_user("owner_z")
+    other = _make_user("other_z")
+    recording = Recording.objects.create(file=_wav(), owner=owner)
+    SharedRecording.objects.create(recording=recording, shared_with=other, shared_by=owner)
+
+    client.force_login(other)
+
+    # Comment succeeds
+    response = client.post(
+        reverse("recording-detail", args=[recording.pk]),
+        data={"action": "comment", "text": "nice groove"},
+    )
+    assert response.status_code == 302
+    assert Comment.objects.filter(recording=recording, text="nice groove").exists()
+
+    # Edit is silently ignored (form not shown, action not owner-guarded at POST level,
+    # but the branch is skipped — recording fields unchanged)
+    old_notes = recording.notes
+    response = client.post(
+        reverse("recording-detail", args=[recording.pk]),
+        data={"action": "edit", "notes": "hacked"},
+    )
+    recording.refresh_from_db()
+    assert recording.notes == old_notes
+
+
+def test_shared_tab_shows_recordings_shared_with_user(client: Client) -> None:
+    owner = _make_user("owner_tab")
+    viewer = _make_user("viewer_tab")
+    recording = Recording.objects.create(file=_wav(), owner=owner)
+    SharedRecording.objects.create(recording=recording, shared_with=viewer, shared_by=owner)
+
+    client.force_login(viewer)
+    response = client.get(reverse("recording-list"), {"tab": "shared"})
+    assert response.status_code == 200
+    assert list(response.context["recordings"]) == [recording]
+    assert response.context["tab"] == "shared"
+
+
+def test_my_tab_does_not_show_other_users_recordings(client: Client) -> None:
+    owner = _make_user("owner_priv")
+    viewer = _make_user("viewer_priv")
+    Recording.objects.create(file=_wav(), owner=owner)
+
+    client.force_login(viewer)
+    response = client.get(reverse("recording-list"), {"tab": "my"})
+    assert response.status_code == 200
+    # viewer owns nothing, so list should be empty (excluding null-owner records)
+    owned = [r for r in response.context["recordings"] if r.owner is not None]
+    assert owned == []
+
+
+def test_recording_share_get_owner_only(client: Client) -> None:
+    owner = _make_user("share_owner")
+    other = _make_user("share_other")
+    recording = Recording.objects.create(file=_wav(), owner=owner)
+
+    # Non-owner gets 403
+    client.force_login(other)
+    response = client.get(reverse("recording-share", args=[recording.pk]))
+    assert response.status_code == 403
+
+    # Owner sees the share page
+    client.force_login(owner)
+    response = client.get(reverse("recording-share", args=[recording.pk]))
+    assert response.status_code == 200
+    usernames = [u.username for u, _ in response.context["users_with_status"]]
+    assert "share_other" in usernames
+
+
+def test_recording_share_post_creates_and_removes_share(client: Client) -> None:
+    owner = _make_user("share_post_owner")
+    alice = _make_user("share_post_alice")
+    bob = _make_user("share_post_bob")
+    recording = Recording.objects.create(file=_wav(), owner=owner)
+
+    client.force_login(owner)
+
+    # Share with alice
+    client.post(
+        reverse("recording-share", args=[recording.pk]),
+        data={"users": [str(alice.pk)]},
+    )
+    assert SharedRecording.objects.filter(recording=recording, shared_with=alice).exists()
+    assert not SharedRecording.objects.filter(recording=recording, shared_with=bob).exists()
+
+    # Un-share alice, share bob instead
+    client.post(
+        reverse("recording-share", args=[recording.pk]),
+        data={"users": [str(bob.pk)]},
+    )
+    assert not SharedRecording.objects.filter(recording=recording, shared_with=alice).exists()
+    assert SharedRecording.objects.filter(recording=recording, shared_with=bob).exists()
