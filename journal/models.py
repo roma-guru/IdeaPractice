@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+import secrets
 from typing import TYPE_CHECKING
 
 from django.conf import settings
 from django.db import models
 from django.db.models import Manager
+
+
+def _invite_code() -> str:
+    return secrets.token_urlsafe(16)  # 22-char URL-safe string
 
 
 class Instrument(models.Model):
@@ -114,6 +119,33 @@ class Comment(models.Model):
 
     def __str__(self) -> str:
         return f"Comment on recording {self.recording.pk}"
+
+
+class Invite(models.Model):
+    code = models.CharField(max_length=32, unique=True, default=_invite_code)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="invites_created",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    note = models.CharField(max_length=200, blank=True)
+    used_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="invite_used",
+    )
+    used_at = models.DateTimeField(null=True, blank=True)
+
+    @property
+    def is_used(self) -> bool:
+        return self.used_by_id is not None
+
+    def __str__(self) -> str:
+        status = f"used by {self.used_by}" if self.is_used else "unused"
+        return f"Invite {self.code[:8]}… ({status})"
 
 
 class SharedRecording(models.Model):

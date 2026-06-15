@@ -8,8 +8,9 @@ import tempfile
 from datetime import timedelta
 from pathlib import Path
 
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, login
 from django.contrib.auth.decorators import login_required
+from django.utils import timezone
 from django.core.exceptions import PermissionDenied
 from django.core.files.uploadedfile import InMemoryUploadedFile, UploadedFile
 from django.db.models import Count, Q, QuerySet, Sum
@@ -18,8 +19,8 @@ from django.http import HttpRequest, HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 
-from .forms import CommentForm, RecordingBatchUploadForm, RecordingEditForm
-from .models import Instrument, Recording, SharedRecording, Tag
+from .forms import CommentForm, RecordingBatchUploadForm, RecordingEditForm, RegisterForm
+from .models import Instrument, Invite, Recording, SharedRecording, Tag
 
 logger = logging.getLogger(__name__)
 
@@ -272,6 +273,32 @@ def recording_share(request: HttpRequest, pk: int) -> HttpResponse:
         "recording": recording,
         "users_with_status": users_with_status,
     })
+
+
+@require_http_methods(["GET", "POST"])
+def register(request: HttpRequest, code: str) -> HttpResponse:
+    try:
+        invite = Invite.objects.get(code=code)
+    except Invite.DoesNotExist:
+        return render(request, "registration/register.html", {"invalid": True})
+
+    if invite.is_used:
+        return render(request, "registration/register.html", {"exhausted": True})
+
+    form = RegisterForm(request.POST if request.method == "POST" else None)
+    if form and form.is_valid():
+        User = get_user_model()
+        user = User.objects.create_user(
+            username=form.cleaned_data["username"],
+            password=form.cleaned_data["password1"],
+        )
+        invite.used_by = user
+        invite.used_at = timezone.now()
+        invite.save()
+        login(request, user)
+        return redirect("recording-list")
+
+    return render(request, "registration/register.html", {"form": form, "invite": invite})
 
 
 @login_required

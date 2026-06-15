@@ -8,7 +8,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client
 from django.urls import reverse
 
-from journal.models import Comment, Instrument, Recording, SharedRecording, Tag
+from journal.models import Comment, Instrument, Invite, Recording, SharedRecording, Tag
 
 pytestmark = pytest.mark.django_db
 
@@ -395,3 +395,91 @@ def test_recording_share_post_creates_and_removes_share(client: Client) -> None:
     )
     assert not SharedRecording.objects.filter(recording=recording, shared_with=alice).exists()
     assert SharedRecording.objects.filter(recording=recording, shared_with=bob).exists()
+
+
+# ---------------------------------------------------------------------------
+# Invite-based registration
+# ---------------------------------------------------------------------------
+
+def _invite(creator: User, **kwargs: object) -> Invite:
+    return Invite.objects.create(created_by=creator, **kwargs)
+
+
+def test_register_invalid_code(client: Client) -> None:
+    response = client.get(reverse("register", args=["nosuchcode"]))
+    assert response.status_code == 200
+    assert response.context["invalid"] is True
+
+
+def test_register_get_shows_form(client: Client) -> None:
+    creator = _make_user("inv_creator")
+    invite = _invite(creator, note="for a friend")
+    response = client.get(reverse("register", args=[invite.code]))
+    assert response.status_code == 200
+    assert "form" in response.context
+    assert response.context["invite"] == invite
+
+
+def test_register_creates_user_and_marks_invite(client: Client) -> None:
+    creator = _make_user("inv_creator2")
+    invite = _invite(creator)
+
+    response = client.post(
+        reverse("register", args=[invite.code]),
+        data={"username": "newuser", "password1": "str0ngPass!", "password2": "str0ngPass!"},
+    )
+    assert response.status_code == 302
+    assert response["Location"] == reverse("recording-list")
+
+    user = User.objects.get(username="newuser")
+    invite.refresh_from_db()
+    assert invite.used_by == user
+    assert invite.used_at is not None
+    assert invite.is_used
+
+
+def test_register_logs_user_in(client: Client) -> None:
+    creator = _make_user("inv_creator3")
+    invite = _invite(creator)
+
+    client.post(
+        reverse("register", args=[invite.code]),
+        data={"username": "autoLogin", "password1": "str0ngPass!", "password2": "str0ngPass!"},
+    )
+    response = client.get(reverse("recording-list"))
+    assert response.status_code == 200  # would redirect to login if not authenticated
+
+
+def test_register_used_invite_shows_error(client: Client) -> None:
+    creator = _make_user("inv_creator4")
+    existing = _make_user("already_used")
+    invite = _invite(creator, used_by=existing)
+
+    response = client.get(reverse("register", args=[invite.code]))
+    assert response.status_code == 200
+    assert response.context.get("exhausted") is True
+
+
+def test_register_duplicate_username_error(client: Client) -> None:
+    creator = _make_user("inv_creator5")
+    _make_user("taken_name")
+    invite = _invite(creator)
+
+    response = client.post(
+        reverse("register", args=[invite.code]),
+        data={"username": "taken_name", "password1": "str0ngPass!", "password2": "str0ngPass!"},
+    )
+    assert response.status_code == 200
+    assert response.context["form"].errors.get("username")
+
+
+def test_register_password_mismatch_error(client: Client) -> None:
+    creator = _make_user("inv_creator6")
+    invite = _invite(creator)
+
+    response = client.post(
+        reverse("register", args=[invite.code]),
+        data={"username": "mismatchUser", "password1": "aaa", "password2": "bbb"},
+    )
+    assert response.status_code == 200
+    assert response.context["form"].non_field_errors()

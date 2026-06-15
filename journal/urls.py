@@ -6,6 +6,7 @@ from .views import (
     recording_share,
     recording_stats,
     recording_upload,
+    register,
 )
 
 urlpatterns = [
@@ -14,4 +15,5 @@ urlpatterns = [
     path("<int:pk>/", recording_detail, name="recording-detail"),
     path("<int:pk>/share/", recording_share, name="recording-share"),
     path("stats/", recording_stats, name="recording-stats"),
+    path("register/<str:code>/", register, name="register"),
 ]

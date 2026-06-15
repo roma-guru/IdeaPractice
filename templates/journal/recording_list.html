@@ -84,10 +84,20 @@
             {% endfor %}
         </div>
         {% if recording.file %}
-            <div class="player-wrap">
-                <audio controls preload="none">
-                    <source src="{{ recording.file.url }}">
-                </audio>
+            <div class="wf-mini-player">
+                <div class="wf-mini-wave wf-loading" data-url="{{ recording.file.url }}"></div>
+                <div class="wf-mini-controls">
+                    <button class="wf-mini-play" aria-label="Play / Pause">
+                        <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor">
+                            <polygon class="wf-icon-play" points="2,1 10,5.5 2,10"/>
+                            <g class="wf-icon-pause" style="display:none">
+                                <rect x="1" y="1" width="3" height="9" rx="1"/>
+                                <rect x="7" y="1" width="3" height="9" rx="1"/>
+                            </g>
+                        </svg>
+                    </button>
+                    <span class="wf-mini-time">0:00</span>
+                </div>
             </div>
         {% endif %}
         <div style="margin-top:10px;">
@@ -103,4 +113,64 @@
         {% endif %}
     </section>
 {% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script type="module">
+const fmt = s => `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`
+
+let WaveSurfer = null
+async function ensureWS() {
+    if (!WaveSurfer) {
+        ;({ default: WaveSurfer } = await import('https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.esm.js'))
+    }
+    return WaveSurfer
+}
+
+let activeWs = null
+
+async function initMini(playerEl) {
+    playerEl._ws = true   // mark immediately to block double-init
+    const WS     = await ensureWS()
+    const waveEl = playerEl.querySelector('.wf-mini-wave')
+    const btn    = playerEl.querySelector('.wf-mini-play')
+    const timeEl = playerEl.querySelector('.wf-mini-time')
+    const iPlay  = btn.querySelector('.wf-icon-play')
+    const iPause = btn.querySelector('.wf-icon-pause')
+
+    const ws = WS.create({
+        container:     waveEl,
+        url:           waveEl.dataset.url,
+        waveColor:     '#a8c4ee',
+        progressColor: '#2f6fed',
+        height:        40,
+        barWidth:      2,
+        barGap:        1,
+        barRadius:     2,
+        normalize:     true,
+    })
+
+    ws.on('ready',      dur => { waveEl.classList.remove('wf-loading'); timeEl.textContent = fmt(dur) })
+    ws.on('timeupdate', t   => timeEl.textContent = fmt(t))
+    ws.on('play',  () => { iPlay.style.display = 'none'; iPause.style.display = '' })
+    ws.on('pause', () => { iPlay.style.display = '';     iPause.style.display = 'none' })
+    ws.on('finish',() => { iPlay.style.display = '';     iPause.style.display = 'none' })
+
+    btn.addEventListener('click', () => {
+        if (activeWs && activeWs !== ws) activeWs.pause()
+        ws.playPause()
+        activeWs = ws
+    })
+
+    playerEl._ws = ws
+}
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+        if (e.isIntersecting && !e.target._ws) initMini(e.target)
+    })
+}, { rootMargin: '120px' })
+
+document.querySelectorAll('.wf-mini-player').forEach(el => observer.observe(el))
+</script>
 {% endblock %}

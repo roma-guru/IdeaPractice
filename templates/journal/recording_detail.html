@@ -33,10 +33,22 @@
         </div>
     </div>
     {% if recording.file %}
-    <div class="player-wrap">
-        <audio controls>
-            <source src="{{ recording.file.url }}">
-        </audio>
+    <div class="waveform-player">
+        <div class="waveform-wave wf-loading" id="wf-wave" data-url="{{ recording.file.url }}"></div>
+        <div class="waveform-controls">
+            <button class="wf-play-btn" id="wf-play" aria-label="Play / Pause">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+                    <polygon class="wf-icon-play" points="3,1 13,7 3,13"/>
+                    <g class="wf-icon-pause" style="display:none">
+                        <rect x="2" y="1" width="4" height="12" rx="1"/>
+                        <rect x="8" y="1" width="4" height="12" rx="1"/>
+                    </g>
+                </svg>
+            </button>
+            <span class="wf-time" id="wf-current">0:00</span>
+            <span class="wf-sep">/</span>
+            <span class="wf-time" id="wf-total">—</span>
+        </div>
     </div>
     {% endif %}
     {% if recording.notes %}
@@ -133,4 +145,41 @@
         </div>
     </form>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+{% if recording.file %}
+<script type="module">
+import WaveSurfer from 'https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.esm.js'
+
+const fmt = s => `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`
+
+const waveEl   = document.getElementById('wf-wave')
+const playBtn  = document.getElementById('wf-play')
+const iconPlay = playBtn.querySelector('.wf-icon-play')
+const iconPause= playBtn.querySelector('.wf-icon-pause')
+const elCurrent= document.getElementById('wf-current')
+const elTotal  = document.getElementById('wf-total')
+
+const ws = WaveSurfer.create({
+    container:     waveEl,
+    url:           waveEl.dataset.url,
+    waveColor:     '#a8c4ee',
+    progressColor: '#2f6fed',
+    height:        80,
+    barWidth:      3,
+    barGap:        1,
+    barRadius:     3,
+    normalize:     true,
+})
+
+ws.on('ready',      dur => { waveEl.classList.remove('wf-loading'); elTotal.textContent = fmt(dur) })
+ws.on('timeupdate', t   => elCurrent.textContent = fmt(t))
+ws.on('play',  () => { iconPlay.style.display = 'none'; iconPause.style.display = '' })
+ws.on('pause', () => { iconPlay.style.display = '';     iconPause.style.display = 'none' })
+ws.on('finish',() => { iconPlay.style.display = '';     iconPause.style.display = 'none' })
+
+playBtn.addEventListener('click', () => ws.playPause())
+</script>
+{% endif %}
 {% endblock %}

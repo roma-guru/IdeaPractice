@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from django import forms
+from django.contrib.auth import get_user_model
 from django.core.files import File
 
 from .models import Comment, Instrument, Recording, Tag
@@ -63,6 +64,27 @@ class RecordingEditForm(forms.ModelForm):  # type: ignore[type-arg]
             "location", "mood", "rating", "notes",
         ]
         widgets = {"notes": forms.Textarea(attrs={"rows": 4})}
+
+
+class RegisterForm(forms.Form):
+    username = forms.CharField(max_length=150)
+    password1 = forms.CharField(label="Password", widget=forms.PasswordInput())
+    password2 = forms.CharField(label="Confirm password", widget=forms.PasswordInput())
+
+    def clean_username(self) -> str:
+        username = self.cleaned_data["username"]
+        User = get_user_model()
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError("This username is already taken.")
+        return username
+
+    def clean(self) -> dict[str, Any]:
+        data = super().clean()
+        p1 = data.get("password1")
+        p2 = data.get("password2")
+        if p1 and p2 and p1 != p2:
+            raise forms.ValidationError("Passwords do not match.")
+        return data
 
 
 class CommentForm(forms.ModelForm):  # type: ignore[type-arg]
