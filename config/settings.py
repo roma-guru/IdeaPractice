@@ -3,9 +3,14 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = "dev-secret-key-change-me"
-DEBUG = True
-ALLOWED_HOSTS: list[str] = []
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-me")
+DEBUG = os.getenv("DEBUG", "true").lower() in {"1", "true", "yes", "on"}
+ALLOWED_HOSTS: list[str] = [
+    h.strip() for h in os.getenv("ALLOWED_HOSTS", "*").split(",") if h.strip()
+]
+CSRF_TRUSTED_ORIGINS: list[str] = [
+    o.strip() for o in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()
+]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -20,6 +25,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -113,7 +119,13 @@ if USE_S3:
 else:
     STORAGES = {
         "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
-        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+        "staticfiles": {
+            "BACKEND": (
+                "whitenoise.storage.CompressedManifestStaticFilesStorage"
+                if not DEBUG
+                else "django.contrib.staticfiles.storage.StaticFilesStorage"
+            )
+        },
     }
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
