@@ -333,6 +333,9 @@ input, select, textarea {
 .wf-mini-play:hover { background: var(--accent); color: white; }
 .wf-mini-time { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
 
+/* Ensure [hidden] beats any display rule set by component styles */
+[hidden] { display: none !important; }
+
 /* ── Language switcher ─────────────────────────────────────────── */
 .lang-switcher {
     position: relative;
