@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load i18n journal_extras %}
+
+{% block content %}
+<section class="panel" style="display:flex;justify-content:space-between;align-items:center;">
+    <h1 style="margin:0;font-size:18px;">{% trans "Projects" %}</h1>
+    <a href="{% url 'project-create' %}" class="button">+ {% trans "New Project" %}</a>
+</section>
+
+{% for project in projects %}
+<article class="panel">
+    <div style="display:flex;align-items:flex-start;gap:14px;">
+        {% if project.logo %}
+            <img src="{{ project.logo.url }}" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:6px;flex-shrink:0;">
+        {% endif %}
+        <div style="flex:1;min-width:0;">
+            <h2 style="margin:0 0 4px;font-size:16px;">
+                <a href="{% url 'project-detail' project.pk %}" style="text-decoration:none;color:inherit;">{{ project.name }}</a>
+            </h2>
+            <p class="meta">
+                {% blocktrans with username=project.creator.username %}by {{ username }}{% endblocktrans %}
+                · {{ project.created_at|date:"Y-m-d" }}
+                · {% blocktrans with n=project.sample_count %}{{ n }} samples{% endblocktrans %}
+                · {% blocktrans with n=project.memberships.count %}{{ n }} participants{% endblocktrans %}
+            </p>
+            {% if project.description %}
+                <div style="margin-top:6px;font-size:14px;color:#666;overflow:hidden;max-height:3em;">{{ project.description|safe|truncatechars:200 }}</div>
+            {% endif %}
+            <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;">
+                {% for m in project.memberships.all %}
+                    <span class="chip chip-user">{{ m.user.username }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        <a href="{% url 'project-detail' project.pk %}" class="btn-detail" style="flex-shrink:0;">{% trans "Open" %}</a>
+    </div>
+</article>
+{% empty %}
+<section class="panel">
+    <p class="empty">{% trans "No projects yet." %} <a href="{% url 'project-create' %}">{% trans "Create one" %}</a></p>
+</section>
+{% endfor %}
+{% endblock %}

@@ -17,8 +17,10 @@
                 {% if recording.location %} · {{ recording.location }}{% endif %}
                 {% if recording.mood %} · {{ recording.mood }}{% endif %}
             </p>
-            {% if not is_owner and recording.owner %}
-                <p class="meta" style="margin-top:4px;">{% blocktrans with username=recording.owner.username %}shared by <strong>{{ username }}</strong>{% endblocktrans %}</p>
+            {% if recording.project %}
+                <p class="meta" style="margin-top:4px;">
+                    {% trans "Project:" %} <a href="{% url 'project-detail' recording.project.pk %}"><strong>{{ recording.project.name }}</strong></a>
+                </p>
             {% endif %}
             <div class="chips" style="margin-top:8px;">
                 <span class="chip chip-type">{{ recording.get_recording_type_display }}</span>
@@ -29,9 +31,6 @@
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
             <a href="{% url 'recording-list' %}" class="btn-back">{% trans "← Back" %}</a>
-            {% if is_owner %}
-                <a href="{% url 'recording-share' recording.pk %}" class="btn-share">{% trans "Share" %}</a>
-            {% endif %}
         </div>
     </div>
     {% if recording.file %}
@@ -63,22 +62,6 @@
 
 {% if is_owner %}
 <section class="panel">
-    <h2 style="margin:0 0 4px;font-size:16px;">{% trans "Shared with" %}</h2>
-    {% if shared_with_users %}
-        <div class="chips" style="margin-bottom:10px;">
-            {% for share in shared_with_users %}
-                <span class="chip chip-user">{{ share.shared_with.username }}</span>
-            {% endfor %}
-        </div>
-    {% else %}
-        <p class="empty" style="margin-bottom:10px;">{% trans "Not shared with anyone yet." %}</p>
-    {% endif %}
-    <a href="{% url 'recording-share' recording.pk %}" class="btn-share">{% trans "Manage sharing" %}</a>
-</section>
-{% endif %}
-
-{% if is_owner %}
-<section class="panel">
     <h2 style="margin:0 0 12px;font-size:16px;">{% trans "Edit" %}</h2>
     {% if edit_form.errors %}
         <p class="empty" style="color:#b3261e;margin-bottom:10px;">{% trans "Please fix the errors below." %}</p>
@@ -87,6 +70,10 @@
         {% csrf_token %}
         <input type="hidden" name="action" value="edit">
         <div class="grid">
+            <div>
+                <label for="{{ edit_form.project.id_for_label }}">{% trans "Project" %}</label>
+                {{ edit_form.project }}
+            </div>
             <div>
                 <label for="{{ edit_form.instrument.id_for_label }}">{% trans "Instrument" %}</label>
                 {{ edit_form.instrument }}
@@ -191,7 +178,7 @@ const ws = WaveSurfer.create({
     barWidth:      3,
     barGap:        1,
     barRadius:     3,
-    normalize:     !peaks,  // only normalize if we have raw decoded data
+    normalize:     !peaks,
 })
 
 ws.on('ready',      dur => { waveEl.classList.remove('wf-loading'); elTotal.textContent = fmt(dur) })

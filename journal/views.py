@@ -20,8 +20,17 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
-from .forms import CommentForm, RecordingBatchUploadForm, RecordingEditForm, RegisterForm
-from .models import Instrument, Invite, Recording, SharedRecording, Tag
+from .forms import (
+    ClipUploadForm,
+    CommentForm,
+    DAWFileUploadForm,
+    ProjectCommentForm,
+    ProjectForm,
+    RecordingBatchUploadForm,
+    RecordingEditForm,
+    RegisterForm,
+)
+from .models import Clip, DAWFile, Instrument, Invite, Project, ProjectParticipant, Recording, Tag
 from .tasks import analyse_recording, auto_describe_recording
 
 logger = logging.getLogger(__name__)
@@ -132,13 +141,14 @@ def _extract_duration(file_obj: UploadedFile) -> timedelta | None:
 @login_required
 def recording_upload(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
-        form = RecordingBatchUploadForm(request.POST, request.FILES)
+        form = RecordingBatchUploadForm(request.POST, request.FILES, user=request.user)
         if form.is_valid():
             uploaded_files = form.cleaned_data["files"]
             tags = form.cleaned_data["tags"]
             do_trim = form.cleaned_data.get("trim_silence", False)
             common_data = {
                 "owner": request.user,
+                "project": form.cleaned_data.get("project"),
                 "instrument": form.cleaned_data["instrument"],
                 "recording_type": form.cleaned_data["recording_type"],
                 "idea_stage": form.cleaned_data["idea_stage"],
@@ -165,7 +175,7 @@ def recording_upload(request: HttpRequest) -> HttpResponse:
                     recording.save(update_fields=["suno_status"])
             return redirect("recording-list")
     else:
-        form = RecordingBatchUploadForm()
+        form = RecordingBatchUploadForm(user=request.user)
 
     return render(
         request,
@@ -176,25 +186,11 @@ def recording_upload(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def recording_list(request: HttpRequest) -> HttpResponse:
-    tab = request.GET.get("tab", "my")
-
-    if tab == "shared":
-        shared_ids = SharedRecording.objects.filter(
-            shared_with=request.user
-        ).values_list("recording_id", flat=True)
-        recordings = (
-            Recording.objects.filter(pk__in=shared_ids)
-            .select_related("instrument", "owner")
-            .prefetch_related("tags")
-        )
-    else:
-        tab = "my"
-        recordings = (
-            Recording.objects.filter(Q(owner=request.user) | Q(owner__isnull=True))
-            .select_related("instrument", "owner")
-            .prefetch_related("tags")
-        )
-
+    recordings = (
+        Recording.objects.filter(Q(owner=request.user) | Q(owner__isnull=True))
+        .select_related("instrument", "owner", "project")
+        .prefetch_related("tags")
+    )
     recordings = _apply_filters(recordings, request.GET)
 
     context = {
@@ -203,7 +199,6 @@ def recording_list(request: HttpRequest) -> HttpResponse:
         "tags": Tag.objects.all(),
         "idea_stages": Recording.IdeaStage.choices,
         "recording_types": Recording.RecordingType.choices,
-        "tab": tab,
     }
     return render(request, "journal/recording_list.html", context)
 
@@ -212,22 +207,21 @@ def recording_list(request: HttpRequest) -> HttpResponse:
 @login_required
 def recording_detail(request: HttpRequest, pk: int) -> HttpResponse:
     recording = get_object_or_404(
-        Recording.objects.select_related("instrument", "owner").prefetch_related("tags"),
+        Recording.objects.select_related("instrument", "owner", "project").prefetch_related("tags"),
         pk=pk,
     )
 
-    is_owner = recording.owner == request.user or recording.owner is None
-    has_access = is_owner or recording.shares.filter(shared_with=request.user).exists()
-    if not has_access:
+    if not recording.can_access(request.user):
         raise PermissionDenied
 
-    edit_form = RecordingEditForm(instance=recording) if is_owner else None
+    is_owner = recording.owner == request.user or recording.owner is None
+    edit_form = RecordingEditForm(instance=recording, user=request.user) if is_owner else None
     comment_form = CommentForm()
 
     if request.method == "POST":
         action = request.POST.get("action")
         if action == "edit" and is_owner:
-            edit_form = RecordingEditForm(request.POST, instance=recording)
+            edit_form = RecordingEditForm(request.POST, instance=recording, user=request.user)
             if edit_form.is_valid():
                 edit_form.save()
                 return redirect("recording-detail", pk=pk)
@@ -240,10 +234,6 @@ def recording_detail(request: HttpRequest, pk: int) -> HttpResponse:
                 comment.save()
                 return redirect("recording-detail", pk=pk)
 
-    shared_with_users = (
-        list(recording.shares.select_related("shared_with").all()) if is_owner else []
-    )
-
     import json
 
     context = {
@@ -252,7 +242,6 @@ def recording_detail(request: HttpRequest, pk: int) -> HttpResponse:
         "comment_form": comment_form,
         "comments": recording.comments.select_related("author").all(),
         "is_owner": is_owner,
-        "shared_with_users": shared_with_users,
         "peaks_json": json.dumps(recording.peaks) if recording.peaks else None,
         "duration_s": (
             recording.duration.total_seconds() if recording.duration else None
@@ -265,44 +254,10 @@ def recording_detail(request: HttpRequest, pk: int) -> HttpResponse:
 def recording_peaks(request: HttpRequest, pk: int) -> JsonResponse:
     """Return pre-computed waveform peaks for a recording (used by list-page player)."""
     recording = get_object_or_404(Recording, pk=pk)
-    is_owner = recording.owner == request.user or recording.owner is None
-    has_access = is_owner or recording.shares.filter(shared_with=request.user).exists()
-    if not has_access:
+    if not recording.can_access(request.user):
         raise PermissionDenied
     duration = recording.duration.total_seconds() if recording.duration else None
     return JsonResponse({"peaks": recording.peaks, "duration": duration})
-
-
-@require_http_methods(["GET", "POST"])
-@login_required
-def recording_share(request: HttpRequest, pk: int) -> HttpResponse:
-    recording = get_object_or_404(Recording, pk=pk)
-    is_owner = recording.owner == request.user or recording.owner is None
-    if not is_owner:
-        raise PermissionDenied
-
-    User = get_user_model()
-    all_users = User.objects.exclude(pk=request.user.pk).order_by("username")
-    currently_shared_ids = set(recording.shares.values_list("shared_with_id", flat=True))
-
-    if request.method == "POST":
-        selected_ids = {int(uid) for uid in request.POST.getlist("users") if uid.isdigit()}
-        for user in all_users:
-            if user.pk in selected_ids and user.pk not in currently_shared_ids:
-                SharedRecording.objects.create(
-                    recording=recording,
-                    shared_with=user,
-                    shared_by=request.user,
-                )
-            elif user.pk not in selected_ids and user.pk in currently_shared_ids:
-                SharedRecording.objects.filter(recording=recording, shared_with=user).delete()
-        return redirect("recording-detail", pk=pk)
-
-    users_with_status = [(user, user.pk in currently_shared_ids) for user in all_users]
-    return render(request, "journal/recording_share.html", {
-        "recording": recording,
-        "users_with_status": users_with_status,
-    })
 
 
 @require_http_methods(["GET", "POST"])
@@ -368,3 +323,134 @@ def recording_stats(request: HttpRequest) -> HttpResponse:
         "recording_types": {v: label for v, label in Recording.RecordingType.choices},
     }
     return render(request, "journal/stats.html", context)
+
+
+# ── Project views ──────────────────────────────────────────────────────────────
+
+
+@login_required
+def project_list(request: HttpRequest) -> HttpResponse:
+    projects = (
+        Project.objects.filter(participants=request.user)
+        .select_related("creator")
+        .prefetch_related("memberships__user")
+        .annotate(sample_count=Count("samples", distinct=True))
+    )
+    return render(request, "journal/project_list.html", {"projects": projects})
+
+
+@require_http_methods(["GET", "POST"])
+@login_required
+def project_create(request: HttpRequest) -> HttpResponse:
+    if request.method == "POST":
+        form = ProjectForm(request.POST, request.FILES)
+        if form.is_valid():
+            project = form.save(commit=False)
+            project.creator = request.user
+            project.save()
+            # Auto-add creator as first participant
+            ProjectParticipant.objects.create(
+                project=project, user=request.user, added_by=request.user
+            )
+            return redirect("project-detail", pk=project.pk)
+    else:
+        form = ProjectForm()
+    return render(request, "journal/project_create.html", {"form": form})
+
+
+@require_http_methods(["GET", "POST"])
+@login_required
+def project_detail(request: HttpRequest, pk: int) -> HttpResponse:
+    project = get_object_or_404(Project, pk=pk)
+
+    if not project.is_participant(request.user):
+        raise PermissionDenied
+
+    is_creator = project.creator_id == request.user.pk
+
+    clip_form = ClipUploadForm()
+    daw_form = DAWFileUploadForm()
+    comment_form = ProjectCommentForm()
+    edit_form = ProjectForm(instance=project) if is_creator else None
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        if action == "comment":
+            comment_form = ProjectCommentForm(request.POST)
+            if comment_form.is_valid():
+                c = comment_form.save(commit=False)
+                c.project = project
+                c.author = request.user
+                c.save()
+                return redirect("project-detail", pk=pk)
+
+        elif action == "upload_clip":
+            clip_form = ClipUploadForm(request.POST, request.FILES)
+            if clip_form.is_valid():
+                Clip.objects.create(
+                    project=project,
+                    file=clip_form.cleaned_data["file"],
+                    title=clip_form.cleaned_data["title"],
+                    notes=clip_form.cleaned_data["notes"],
+                    uploaded_by=request.user,
+                )
+                return redirect("project-detail", pk=pk)
+
+        elif action == "upload_daw":
+            daw_form = DAWFileUploadForm(request.POST, request.FILES)
+            if daw_form.is_valid():
+                DAWFile.objects.create(
+                    project=project,
+                    file=daw_form.cleaned_data["file"],
+                    title=daw_form.cleaned_data["title"],
+                    notes=daw_form.cleaned_data["notes"],
+                    uploaded_by=request.user,
+                )
+                return redirect("project-detail", pk=pk)
+
+        elif action == "add_participant" and is_creator:
+            User = get_user_model()
+            username = request.POST.get("username", "").strip()
+            try:
+                user = User.objects.get(username=username)
+                if user != request.user:
+                    ProjectParticipant.objects.get_or_create(
+                        project=project,
+                        user=user,
+                        defaults={"added_by": request.user},
+                    )
+            except User.DoesNotExist:
+                pass
+            return redirect("project-detail", pk=pk)
+
+        elif action == "remove_participant" and is_creator:
+            user_id = request.POST.get("user_id", "")
+            if user_id.isdigit() and int(user_id) != request.user.pk:
+                ProjectParticipant.objects.filter(
+                    project=project, user_id=int(user_id)
+                ).delete()
+            return redirect("project-detail", pk=pk)
+
+        elif action == "edit" and is_creator:
+            edit_form = ProjectForm(request.POST, request.FILES, instance=project)
+            if edit_form.is_valid():
+                edit_form.save()
+                return redirect("project-detail", pk=pk)
+
+        return redirect("project-detail", pk=pk)
+
+    context = {
+        "project": project,
+        "samples": project.samples.select_related("instrument", "owner").prefetch_related("tags"),
+        "clips": project.clips.select_related("uploaded_by"),
+        "daw_files": project.daw_files.select_related("uploaded_by"),
+        "comments": project.comments.select_related("author"),
+        "participants": project.memberships.select_related("user", "added_by"),
+        "is_creator": is_creator,
+        "clip_form": clip_form,
+        "daw_form": daw_form,
+        "comment_form": comment_form,
+        "edit_form": edit_form,
+    }
+    return render(request, "journal/project_detail.html", context)

@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+{% load i18n journal_extras %}
+
+{% block content %}
+
+{# ── Header ──────────────────────────────────────────────────────────────── #}
+<section class="panel">
+    <div style="display:flex;align-items:flex-start;gap:16px;">
+        {% if project.logo %}
+            <img src="{{ project.logo.url }}" alt="" style="width:72px;height:72px;object-fit:cover;border-radius:8px;flex-shrink:0;">
+        {% endif %}
+        <div style="flex:1;min-width:0;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;">
+                <h1 style="margin:0 0 4px;font-size:20px;">{{ project.name }}</h1>
+                <div style="display:flex;gap:8px;flex-shrink:0;">
+                    <a href="{% url 'project-list' %}" class="btn-back">{% trans "← Projects" %}</a>
+                    {% if is_creator %}
+                        <button class="btn-share" onclick="document.getElementById('edit-section').hidden=!document.getElementById('edit-section').hidden">{% trans "Edit" %}</button>
+                    {% endif %}
+                </div>
+            </div>
+            <p class="meta">
+                {% blocktrans with username=project.creator.username %}by {{ username }}{% endblocktrans %}
+                · {{ project.created_at|date:"Y-m-d" }}
+            </p>
+            {% if project.description %}
+                <div style="margin-top:10px;font-size:14px;line-height:1.6;">{{ project.description|safe }}</div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+{# ── Edit project (creator only, hidden by default) ───────────────────────── #}
+{% if is_creator %}
+<section class="panel" id="edit-section" hidden>
+    <h2 style="margin:0 0 12px;font-size:16px;">{% trans "Edit Project" %}</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="edit">
+        <div style="margin-bottom:12px;">
+            <label for="{{ edit_form.name.id_for_label }}">{% trans "Name" %}</label>
+            {{ edit_form.name }}
+        </div>
+        <div style="margin-bottom:12px;">
+            <label for="{{ edit_form.logo.id_for_label }}">{% trans "Logo" %}</label>
+            {% if project.logo %}<img src="{{ project.logo.url }}" alt="" style="display:block;width:48px;height:48px;object-fit:cover;border-radius:4px;margin-bottom:6px;">{% endif %}
+            {{ edit_form.logo }}
+        </div>
+        <div style="margin-bottom:12px;">
+            <label for="{{ edit_form.description.id_for_label }}">{% trans "Description (HTML)" %}</label>
+            {{ edit_form.description }}
+        </div>
+        <button class="button" type="submit">{% trans "Save" %}</button>
+    </form>
+</section>
+{% endif %}
+
+{# ── Participants ──────────────────────────────────────────────────────────── #}
+<section class="panel">
+    <h2 style="margin:0 0 10px;font-size:16px;">{% trans "Participants" %}</h2>
+    <div class="chips" style="margin-bottom:10px;">
+        {% for membership in participants %}
+            <span class="chip chip-user">
+                {{ membership.user.username }}
+                {% if membership.user == project.creator %}<small>({% trans "creator" %})</small>{% endif %}
+                {% if is_creator and membership.user != project.creator %}
+                    <form method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="remove_participant">
+                        <input type="hidden" name="user_id" value="{{ membership.user.pk }}">
+                        <button type="submit" style="background:none;border:none;cursor:pointer;color:#b3261e;font-size:11px;padding:0 0 0 4px;" title="{% trans "Remove" %}">✕</button>
+                    </form>
+                {% endif %}
+            </span>
+        {% empty %}
+            <span class="empty">{% trans "No participants yet." %}</span>
+        {% endfor %}
+    </div>
+    {% if is_creator %}
+    <form method="post" style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_participant">
+        <div>
+            <label for="add-username" style="font-size:13px;">{% trans "Add by username" %}</label>
+            <input id="add-username" name="username" type="text" placeholder="username" style="min-width:180px;">
+        </div>
+        <button class="button" type="submit">{% trans "Add" %}</button>
+    </form>
+    {% endif %}
+</section>
+
+{# ── Samples ───────────────────────────────────────────────────────────────── #}
+<section class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h2 style="margin:0;font-size:16px;">{% trans "Samples" %} ({{ samples|length }})</h2>
+        <a href="{% url 'recording-upload' %}?project={{ project.pk }}" class="button" style="font-size:13px;">+ {% trans "Upload" %}</a>
+    </div>
+    {% for sample in samples %}
+    <article class="recording-item" style="border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:10px;">
+        <div class="recording-item-header">
+            <strong style="font-size:14px;">{{ sample.file.name|basename }}</strong>
+            {% if sample.owner %}<span class="chip chip-user" style="font-size:11px;">{{ sample.owner.username }}</span>{% endif %}
+        </div>
+        <p class="meta">
+            {{ sample.created_at|date:"Y-m-d H:i" }}
+            {% if sample.instrument %} · {{ sample.instrument.name }}{% endif %}
+            {% if sample.duration %} · {{ sample.duration|format_duration }}{% endif %}
+            · {{ sample.get_idea_stage_display }}
+        </p>
+        <div class="chips">
+            <span class="chip chip-type">{{ sample.get_recording_type_display }}</span>
+            {% for tag in sample.tags.all %}<span class="chip">{{ tag.name }}</span>{% endfor %}
+        </div>
+        <a href="{% url 'recording-detail' sample.pk %}" class="btn-detail" style="margin-top:6px;display:inline-block;font-size:13px;">{% trans "View" %}</a>
+    </article>
+    {% empty %}
+        <p class="empty">{% trans "No samples yet." %}</p>
+    {% endfor %}
+</section>
+
+{# ── Clips ─────────────────────────────────────────────────────────────────── #}
+<section class="panel">
+    <h2 style="margin:0 0 10px;font-size:16px;">{% trans "Clips / References" %} ({{ clips|length }})</h2>
+
+    <form method="post" enctype="multipart/form-data" style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="upload_clip">
+        <div class="grid">
+            <div>
+                <label>{% trans "File (mp3, wav, …)" %}</label>
+                {{ clip_form.file }}
+                {% if clip_form.file.errors %}<p style="color:#b3261e;font-size:12px;">{{ clip_form.file.errors }}</p>{% endif %}
+            </div>
+            <div>
+                <label>{% trans "Title" %}</label>
+                {{ clip_form.title }}
+            </div>
+            <div style="grid-column:1/-1;">
+                <label>{% trans "Notes" %}</label>
+                {{ clip_form.notes }}
+            </div>
+        </div>
+        <button class="button" type="submit" style="margin-top:8px;">{% trans "Upload Clip" %}</button>
+    </form>
+
+    {% for clip in clips %}
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
+        <div>
+            <strong style="font-size:14px;">{{ clip.title|default:clip.file.name|basename }}</strong>
+            {% if clip.uploaded_by %}<span class="chip chip-user" style="font-size:11px;">{{ clip.uploaded_by.username }}</span>{% endif %}
+            <p class="meta">{{ clip.created_at|date:"Y-m-d H:i" }}</p>
+            {% if clip.notes %}<p style="font-size:13px;margin:2px 0 0;">{{ clip.notes }}</p>{% endif %}
+        </div>
+        <a href="{{ clip.file.url }}" class="btn-detail" download style="flex-shrink:0;font-size:13px;">{% trans "Download" %}</a>
+    </div>
+    {% empty %}
+        <p class="empty">{% trans "No clips yet." %}</p>
+    {% endfor %}
+</section>
+
+{# ── DAW Files ─────────────────────────────────────────────────────────────── #}
+<section class="panel">
+    <h2 style="margin:0 0 10px;font-size:16px;">{% trans "DAW / Project Files" %} ({{ daw_files|length }})</h2>
+
+    <form method="post" enctype="multipart/form-data" style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="upload_daw">
+        <div class="grid">
+            <div>
+                <label>{% trans "File (zip, als, flp, …)" %}</label>
+                {{ daw_form.file }}
+                {% if daw_form.file.errors %}<p style="color:#b3261e;font-size:12px;">{{ daw_form.file.errors }}</p>{% endif %}
+            </div>
+            <div>
+                <label>{% trans "Title" %}</label>
+                {{ daw_form.title }}
+            </div>
+            <div style="grid-column:1/-1;">
+                <label>{% trans "Notes" %}</label>
+                {{ daw_form.notes }}
+            </div>
+        </div>
+        <button class="button" type="submit" style="margin-top:8px;">{% trans "Upload DAW File" %}</button>
+    </form>
+
+    {% for daw in daw_files %}
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
+        <div>
+            <strong style="font-size:14px;">{{ daw.title|default:daw.file.name|basename }}</strong>
+            {% if daw.uploaded_by %}<span class="chip chip-user" style="font-size:11px;">{{ daw.uploaded_by.username }}</span>{% endif %}
+            <p class="meta">{{ daw.created_at|date:"Y-m-d H:i" }}</p>
+            {% if daw.notes %}<p style="font-size:13px;margin:2px 0 0;">{{ daw.notes }}</p>{% endif %}
+        </div>
+        <a href="{{ daw.file.url }}" class="btn-detail" download style="flex-shrink:0;font-size:13px;">{% trans "Download" %}</a>
+    </div>
+    {% empty %}
+        <p class="empty">{% trans "No DAW files yet." %}</p>
+    {% endfor %}
+</section>
+
+{# ── Comments ──────────────────────────────────────────────────────────────── #}
+<section class="panel">
+    {% with count=comments|length %}
+    <h2 style="margin:0 0 12px;font-size:16px;">{% blocktrans %}Comments ({{ count }}){% endblocktrans %}</h2>
+    {% endwith %}
+    {% for comment in comments %}
+    <div class="comment-item">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
+            <strong style="font-size:13px;">{{ comment.author.username|default:"—" }}</strong>
+            <span class="meta">{{ comment.created_at|date:"Y-m-d H:i" }}</span>
+        </div>
+        <p style="margin:4px 0 0;white-space:pre-wrap;font-size:14px;">{{ comment.text }}</p>
+    </div>
+    {% empty %}
+    <p class="empty">{% trans "No comments yet." %}</p>
+    {% endfor %}
+    <form method="post" style="margin-top:14px;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="comment">
+        <label for="{{ comment_form.text.id_for_label }}">{{ comment_form.text.label }}</label>
+        {{ comment_form.text }}
+        <div style="margin-top:8px;">
+            <button class="button" type="submit">{% trans "Add Comment" %}</button>
+        </div>
+    </form>
+</section>
+
+{% endblock %}

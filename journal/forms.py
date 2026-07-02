@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 from django.core.files import File
 from django.utils.translation import gettext_lazy as _
 
-from .models import Comment, Instrument, Recording, Tag
+from .models import Comment, Instrument, Project, ProjectComment, Recording, Tag
 
 
 class MultipleFileInput(forms.ClearableFileInput):
@@ -28,6 +28,11 @@ class RecordingBatchUploadForm(forms.Form):
     files = MultipleFileField(  # type: ignore[assignment]
         widget=MultipleFileInput(),
         help_text=_("Select one or more recordings."),
+    )
+    project = forms.ModelChoiceField(
+        queryset=Project.objects.none(),
+        required=False,
+        help_text=_("Assign to a project (required for sharing with collaborators)."),
     )
     instrument = forms.ModelChoiceField(queryset=Instrument.objects.all(), required=False)
     tags = forms.ModelMultipleChoiceField(
@@ -57,6 +62,13 @@ class RecordingBatchUploadForm(forms.Form):
     )
     notes = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 4}))
 
+    def __init__(self, *args: Any, user: Any = None, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        if user is not None:
+            self.fields["project"].queryset = Project.objects.filter(  # type: ignore[union-attr]
+                participants=user
+            )
+
 
 _KEY_CHOICES = [("", "—")] + [
     (f"{note} {mode}", f"{note} {mode}")
@@ -76,10 +88,65 @@ class RecordingEditForm(forms.ModelForm):  # type: ignore[type-arg]
     class Meta:
         model = Recording
         fields = [
-            "instrument", "recording_type", "tags", "idea_stage",
-            "location", "mood", "rating", "bpm", "key", "notes",
+            "project",
+            "instrument",
+            "recording_type",
+            "tags",
+            "idea_stage",
+            "location",
+            "mood",
+            "rating",
+            "bpm",
+            "key",
+            "notes",
         ]
         widgets = {"notes": forms.Textarea(attrs={"rows": 4})}
+
+    def __init__(self, *args: Any, user: Any = None, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        if user is not None:
+            self.fields["project"].queryset = Project.objects.filter(  # type: ignore[union-attr]
+                participants=user
+            )
+        else:
+            self.fields["project"].queryset = Project.objects.all()  # type: ignore[union-attr]
+        self.fields["project"].required = False  # type: ignore[union-attr]
+
+
+class ProjectForm(forms.ModelForm):  # type: ignore[type-arg]
+    class Meta:
+        model = Project
+        fields = ["name", "description", "logo"]
+        widgets = {
+            "description": forms.Textarea(attrs={"rows": 6}),
+        }
+        help_texts = {
+            "description": _("HTML is rendered as-is. Use for rich links and formatting."),
+        }
+
+
+class ProjectCommentForm(forms.ModelForm):  # type: ignore[type-arg]
+    class Meta:
+        model = ProjectComment
+        fields = ["text"]
+        widgets = {
+            "text": forms.Textarea(
+                attrs={"rows": 3, "placeholder": _("Notes, ideas, feedback for the project…")}
+            )
+        }
+        labels = {"text": _("Add a comment")}
+
+
+class ClipUploadForm(forms.Form):
+    file = forms.FileField(label=_("File (mp3, wav, …)"))
+    title = forms.CharField(max_length=255, required=False, label=_("Title"))
+    notes = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 2}))
+
+
+class DAWFileUploadForm(forms.Form):
+    file = forms.FileField(label=_("File (zip, als, flp, …)"))
+    title = forms.CharField(max_length=255, required=False, label=_("Title"))
+    notes = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 2}))
 
 
 class RegisterForm(forms.Form):

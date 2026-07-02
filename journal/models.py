@@ -27,9 +27,7 @@ class Instrument(models.Model):
         OTHER = "other", _("Other")
 
     name = models.CharField(max_length=120, unique=True)
-    family = models.CharField(
-        max_length=32, choices=Family.choices, blank=True
-    )
+    family = models.CharField(max_length=32, choices=Family.choices, blank=True)
     notes = models.TextField(blank=True)
 
     class Meta:
@@ -60,7 +58,82 @@ class Tag(models.Model):
         return self.name
 
 
+class Project(models.Model):
+    """A collaborative music project that groups samples, clips, and DAW files."""
+
+    name = models.CharField(max_length=255)
+    creator = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="created_projects",
+    )
+    participants = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        through="ProjectParticipant",
+        through_fields=("project", "user"),
+        related_name="projects",
+    )
+    description = models.TextField(blank=True)  # stored as HTML; render with |safe
+    logo = models.ImageField(upload_to="logos/", blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return self.name
+
+    def is_participant(self, user: object) -> bool:
+        return self.participants.filter(pk=getattr(user, "pk", None)).exists()
+
+
+class ProjectParticipant(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="memberships")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="project_memberships",
+    )
+    added_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="participants_added",
+    )
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("project", "user")
+        ordering = ["added_at"]
+
+    def __str__(self) -> str:
+        return f"{self.user} in {self.project}"
+
+
+class ProjectComment(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="comments")
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="project_comments",
+    )
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def __str__(self) -> str:
+        return f"Comment by {self.author} on {self.project}"
+
+
 class Recording(models.Model):
+    """An audio sample/recording. Optionally belongs to a Project."""
+
     class IdeaStage(models.TextChoices):
         RAW = "raw", _("Raw")
         PROMISING = "promising", _("Promising")
@@ -85,6 +158,13 @@ class Recording(models.Model):
         FAILED = "failed", _("Failed")
         SKIPPED = "skipped", _("Skipped")
 
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="samples",
+    )
     file = models.FileField(upload_to="recordings/%Y/%m/")
     created_at = models.DateTimeField(auto_now_add=True)
     duration = models.DurationField(null=True, blank=True)
@@ -122,7 +202,6 @@ class Recording(models.Model):
     peaks = models.JSONField(null=True, blank=True)  # downsampled waveform for display
 
     if TYPE_CHECKING:
-        shares: Manager[SharedRecording]
         comments: Manager[Comment]
 
     class Meta:
@@ -131,6 +210,14 @@ class Recording(models.Model):
     def __str__(self) -> str:
         instrument = self.instrument.name if self.instrument else "No instrument"
         return f"{instrument}: {self.file.name}"
+
+    def can_access(self, user: object) -> bool:
+        """Owner always has access. Project participants have access if recording is in a project."""
+        if self.owner_id is None or self.owner == user:
+            return True
+        if self.project_id and self.project.is_participant(user):
+            return True
+        return False
 
 
 class Comment(models.Model):
@@ -150,6 +237,52 @@ class Comment(models.Model):
 
     def __str__(self) -> str:
         return f"Comment on recording {self.recording.pk}"
+
+
+class Clip(models.Model):
+    """Reference mp3 / audio clip attached to a project."""
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="clips")
+    file = models.FileField(upload_to="clips/%Y/%m/")
+    title = models.CharField(max_length=255, blank=True)
+    notes = models.TextField(blank=True)
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="clips_uploaded",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return self.title or str(self.file)
+
+
+class DAWFile(models.Model):
+    """Compressed DAW project or other binary file attached to a project."""
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="daw_files")
+    file = models.FileField(upload_to="daw/%Y/%m/")
+    title = models.CharField(max_length=255, blank=True)
+    notes = models.TextField(blank=True)
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="daw_files_uploaded",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return self.title or str(self.file)
 
 
 class Invite(models.Model):
@@ -177,24 +310,3 @@ class Invite(models.Model):
     def __str__(self) -> str:
         status = f"used by {self.used_by}" if self.is_used else "unused"
         return f"Invite {self.code[:8]}… ({status})"
-
-
-class SharedRecording(models.Model):
-    recording = models.ForeignKey(Recording, on_delete=models.CASCADE, related_name="shares")
-    shared_with = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="shared_recordings",
-    )
-    shared_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="recordings_shared_by_me",
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = ("recording", "shared_with")
-
-    def __str__(self) -> str:
-        return f"{self.recording} shared with {self.shared_with}"

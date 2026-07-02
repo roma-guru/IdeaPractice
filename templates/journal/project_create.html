@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+<section class="panel">
+    <h1 style="margin:0 0 16px;font-size:18px;">{% trans "New Project" %}</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div style="margin-bottom:12px;">
+            <label for="{{ form.name.id_for_label }}">{% trans "Name" %}</label>
+            {{ form.name }}
+            {% if form.name.errors %}<p style="color:#b3261e;font-size:13px;">{{ form.name.errors }}</p>{% endif %}
+        </div>
+        <div style="margin-bottom:12px;">
+            <label for="{{ form.logo.id_for_label }}">{% trans "Logo" %} ({% trans "optional" %})</label>
+            {{ form.logo }}
+        </div>
+        <div style="margin-bottom:12px;">
+            <label for="{{ form.description.id_for_label }}">{% trans "Description" %}</label>
+            <p class="meta" style="margin:0 0 4px;">{% trans "HTML is rendered as-is. Use for rich links and formatting." %}</p>
+            {{ form.description }}
+        </div>
+        <div style="margin-top:16px;display:flex;gap:10px;">
+            <button class="button" type="submit">{% trans "Create Project" %}</button>
+            <a href="{% url 'project-list' %}" class="btn-back">{% trans "Cancel" %}</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

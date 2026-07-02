@@ -3,13 +3,8 @@
 
 {% block content %}
 <section class="panel">
-    <div class="tabs">
-        <a href="?tab=my" class="tab {% if tab == 'my' %}tab-active{% endif %}">{% trans "My Files" %}</a>
-        <a href="?tab=shared" class="tab {% if tab == 'shared' %}tab-active{% endif %}">{% trans "Shared with Me" %}</a>
-    </div>
-
-    <form method="get" class="grid" style="margin-top:12px;">
-        <input type="hidden" name="tab" value="{{ tab }}">
+    <h1 style="margin:0 0 12px;font-size:18px;">{% trans "My Samples" %}</h1>
+    <form method="get" class="grid" style="margin-top:4px;">
         <div>
             <label for="instrument">{% trans "Instrument" %}</label>
             <select name="instrument" id="instrument">
@@ -64,8 +59,8 @@
     <article class="panel recording-item">
         <div class="recording-item-header">
             <h3>{{ recording.file.name|basename }}</h3>
-            {% if tab == "shared" and recording.owner %}
-                <span class="shared-by-badge">{% blocktrans with username=recording.owner.username %}shared by {{ username }}{% endblocktrans %}</span>
+            {% if recording.project %}
+                <a href="{% url 'project-detail' recording.project.pk %}" class="chip chip-project" style="text-decoration:none;">{{ recording.project.name }}</a>
             {% endif %}
         </div>
         <p class="meta">
@@ -108,11 +103,7 @@
     </article>
 {% empty %}
     <section class="panel">
-        {% if tab == "shared" %}
-            <p class="empty">{% trans "No recordings have been shared with you yet." %}</p>
-        {% else %}
-            <p class="empty">{% trans "No recordings yet. Start with Upload." %}</p>
-        {% endif %}
+        <p class="empty">{% trans "No samples yet. Start with Upload." %}</p>
     </section>
 {% endfor %}
 {% endblock %}
@@ -140,7 +131,6 @@ async function initMini(playerEl) {
     const iPlay  = btn.querySelector('.wf-icon-play')
     const iPause = btn.querySelector('.wf-icon-pause')
 
-    // Fetch pre-computed peaks from server (avoids MP3 Web Audio decode issues)
     let peaks, duration
     try {
         const resp = await fetch(waveEl.dataset.peaksUrl)
@@ -148,7 +138,7 @@ async function initMini(playerEl) {
             const data = await resp.json()
             if (data.peaks) { peaks = [new Float32Array(data.peaks)]; duration = data.duration || undefined }
         }
-    } catch (_) { /* fall back to url-only decode */ }
+    } catch (_) {}
 
     const ws = WS.create({
         container:     waveEl,
